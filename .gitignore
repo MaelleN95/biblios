@@ -1,0 +1,10 @@
+/vendor/
+/var/
+/.env
+node_modules/
+.env.local
+.idea/
+*.log
+/biblios-app/.env.local
+/biblios-app/var/
+/biblios-app/vendor/

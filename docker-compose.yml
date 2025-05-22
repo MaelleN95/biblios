@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  php:
+    container_name: biblios-php
+    build:
+      context: ./docker/php
+    volumes:
+      - ./biblios-app:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - mariadb
+
+  nginx:
+    container_name: biblios-nginx
+    image: nginx:stable-alpine
+    ports:
+      - '8080:80'
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./biblios-app:/var/www/html
+    depends_on:
+      - php
+
+  mariadb:
+    container_name: biblios-db
+    image: mariadb:10.11
+    restart: always
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: biblios
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: symfony
+
+  phpmyadmin:
+    container_name: biblios-phpmyadmin
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - '8081:80'
+    environment:
+      PMA_HOST: biblios-db
+      PMA_PORT: 3306
+      PMA_USER: symfony
+      PMA_PASSWORD: symfony
+    depends_on:
+      - mariadb
+
+volumes:
+  db_data:
