@@ -9,4 +9,8 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Install Symfony CLI
+RUN curl -sS https://get.symfony.com/cli/installer | bash && \
+    mv ~/.symfony*/bin/symfony /usr/local/bin/symfony
+
 WORKDIR /var/www/html
