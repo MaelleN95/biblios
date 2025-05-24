@@ -14,7 +14,7 @@ class EditorTypeForm extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom de l\'éditeur',
+                'label' => 'editor.form.name',  
                 'required' => true,
             ])
         ;

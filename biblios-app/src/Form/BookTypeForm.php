@@ -23,34 +23,34 @@ class BookTypeForm extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Titre du livre',
+                'label' => 'book.form.title',
                 'required' => true,
             ])
             ->add('isbn', TextType::class, [
-                'label' => 'ISBN',
+                'label' => 'book.form.isbn',
                 'required' => true,
             ])
             ->add('cover', UrlType::class, [
-                'label' => 'Couverture',
+                'label' => 'book.form.cover',
                 'required' => false,
             ])  
             ->add('editedAt', DateType::class, [
-                'label' => 'Date de publication',
+                'label' => 'book.form.edited_at',
                 'input' => 'datetime_immutable',
                 'widget' => 'single_text',
                 'required' => true,
             ])
             ->add('plot', TextareaType::class, [
-                'label' => 'Résumé',
+                'label' => 'book.form.plot',
                 'required' => false,
             ])
             ->add('pageNumber', IntegerType::class, [
-                'label' => 'Nombre de pages',
+                'label' => 'book.form.page_number',
                 'required' => true,
             ])
             ->add('status', EnumType::class, [
                 'class' => BookStatus::class,
-                'label' => 'Statut',
+                'label' => 'book.form.status',
                 // Use a callback to get the label for each enum value
                 'choice_label' => function(BookStatus $status) {
                     return $status->getLabel();
@@ -60,9 +60,11 @@ class BookTypeForm extends AbstractType
             ->add('editor', EntityType::class, [
                 'class' => Editor::class,
                 'choice_label' => 'id',
+                'label' => 'book.form.editor',  
             ])
             ->add('authors', EntityType::class, [
                 'class' => Author::class,
+                'label' => 'book.form.authors',
                 'choice_label' => 'id',
                 'multiple' => true,
                 'required' => false,

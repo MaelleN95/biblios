@@ -1,0 +1,23 @@
+book:
+  form:
+    title: 'Titre du livre'
+    isbn: 'ISBN'
+    cover: 'Couverture'
+    edited_at: 'Date de publication'
+    plot: 'Résumé'
+    page_number: 'Nombre de pages'
+    status: 'Statut'
+    editor: 'Éditeur'
+    authors: 'Auteurs'
+
+author:
+  form:
+    name: "Nom de l'auteur"
+    date_of_birth: 'Date de naissance'
+    date_of_death: 'Date de décès'
+    nationality: 'Nationalité'
+    books: 'Livres'
+
+editor:
+  form:
+    name: "Nom de l'éditeur"

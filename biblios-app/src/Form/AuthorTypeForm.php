@@ -17,25 +17,25 @@ class AuthorTypeForm extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom de l\'auteur',
+                'label' => 'author.form.name',
             ])
             ->add('dateOfBirth', DateType::class, [
-                'label' => 'Date de naissance',
+                'label' => 'author.form.date_of_birth',
                 'input' => 'datetime_immutable',
                 'widget' => 'single_text',
             ])
             ->add('dateOfDeath', DateType::class, [
-                'label' => 'Date de décès',
+                'label' => 'author.form.date_of_death',
                 'input' => 'datetime_immutable',
                 'widget' => 'single_text',
                 'required' => false,
             ])
             ->add('nationality', TextType::class, [
-                'label' => 'Nationalité',
+                'label' => 'author.form.nationality',
                 'required' => false,
             ])
             ->add('books', EntityType::class, [
-                'label' => 'Livres',
+                'label' => 'author.form.books',
                 'class' => Book::class,
                 'choice_label' => 'id',
                 'multiple' => true,
