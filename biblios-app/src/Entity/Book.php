@@ -26,9 +26,6 @@ class Book
     #[ORM\Column(length: 255)]
     private ?string $cover = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $editor = null;
-
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $editedAt = null;
 
@@ -43,6 +40,10 @@ class Book
 
     #[ORM\Column(type: Types::ARRAY)]
     private array $comments = [];
+
+    #[ORM\ManyToOne(inversedBy: 'books')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Editor $editor = null;
 
     public function getId(): ?int
     {
@@ -93,18 +94,6 @@ class Book
     public function setCover(string $cover): static
     {
         $this->cover = $cover;
-
-        return $this;
-    }
-
-    public function getEditor(): ?string
-    {
-        return $this->editor;
-    }
-
-    public function setEditor(string $editor): static
-    {
-        $this->editor = $editor;
 
         return $this;
     }
@@ -165,6 +154,18 @@ class Book
     public function setComments(array $comments): static
     {
         $this->comments = $comments;
+
+        return $this;
+    }
+
+    public function getEditor(): ?Editor
+    {
+        return $this->editor;
+    }
+
+    public function setEditor(?Editor $editor): static
+    {
+        $this->editor = $editor;
 
         return $this;
     }
