@@ -14,6 +14,8 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 
 class BookTypeForm extends AbstractType
 {
@@ -28,7 +30,7 @@ class BookTypeForm extends AbstractType
                 'label' => 'ISBN',
                 'required' => true,
             ])
-            ->add('cover', TextType::class, [
+            ->add('cover', UrlType::class, [
                 'label' => 'Couverture',
                 'required' => false,
             ])  
@@ -38,7 +40,7 @@ class BookTypeForm extends AbstractType
                 'widget' => 'single_text',
                 'required' => true,
             ])
-            ->add('plot', TextType::class, [
+            ->add('plot', TextareaType::class, [
                 'label' => 'Résumé',
                 'required' => false,
             ])
