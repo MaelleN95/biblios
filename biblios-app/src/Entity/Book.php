@@ -39,7 +39,7 @@ class Book
     private ?int $pageNumber = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    private ?BookStatus $status = null;
 
     #[ORM\Column(type: Types::ARRAY)]
     private array $comments = [];
@@ -145,12 +145,12 @@ class Book
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?BookStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(string $BookStatus): static
     {
         $this->status = $status;
 
