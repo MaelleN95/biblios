@@ -9,6 +9,7 @@ use App\Enum\BookStatus;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -16,6 +17,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class BookTypeForm extends AbstractType
 {
@@ -68,6 +70,13 @@ class BookTypeForm extends AbstractType
                 'choice_label' => 'id',
                 'multiple' => true,
                 'by_reference' => false,
+            ])
+            ->add('certification', CheckboxType::class, [
+                'label' => 'book.form.certification',
+                'mapped' => false,
+                'constraints' => [
+                    new Assert\IsTrue(),
+                ],
             ])
         ;
     }
