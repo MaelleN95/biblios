@@ -1,24 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste d'auteur{% endblock %}
+{% block title %}Liste d'auteurs{% endblock %}
 
 {% block body %}
-    <style>
-        .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-        .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-    </style>
+<section class="container px-4">
+    <h1>Liste d'auteur</h1>
 
-    <section class="example-wrapper">
-        <h1>Liste d'auteurs</h1>
-        <ul class="list-group list-group-flush">
-            {% for author in authors %}
-                <div class="card-title d-flex justify-content-between">
-                    <a href="{{ path('app_admin_author_show', {id: author.id}) }}" class="stretched-link link-dark">
-                        <h4 class="mb-1">{{ author.name }}</h4>
-                    </a>
-                    <small class="text-muted">Identifiant : {{ author.id }}</small>
+    <ul class="list-group list-group-flush">
+        {% for author in authors %}
+            <div class="card mb-1">
+                <div class="card-body">
+                    <div class="card-title d-flex justify-content-between">
+                        <a href="{{ path('app_admin_author_show', {id: author.id}) }}" class="stretched-link link-dark">
+                            <h4 class="mb-1">{{ author.name }}</h4>
+                        </a>
+                        <small class="text-muted">Identifiant : {{ author.id }}</small>
+                    </div>
                 </div>
-            {% endfor %}
-        </ul>
-    </section>
+            </div>
+        {% else %}
+            <li>Aucun enregistrement en base de données.</li>
+        {% endfor %}
+    </ul>
+</section>
 {% endblock %}
