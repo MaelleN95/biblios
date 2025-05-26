@@ -67,7 +67,7 @@ class BookTypeForm extends AbstractType
                 'label' => 'book.form.authors',
                 'choice_label' => 'id',
                 'multiple' => true,
-                'required' => false,
+                'by_reference' => false,
             ])
         ;
     }
