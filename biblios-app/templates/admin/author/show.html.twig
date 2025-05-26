@@ -21,7 +21,7 @@
                         <li class="list-group-item">Date de naissance : {{ author.dateOfBirth|date('d M Y') }}</li>
                         <li class="list-group-item">Date de décès : {{ author.dateOfDeath ? author.dateOfDeath|date('d M Y') : '-' }}</li>
                     </ul>
-                    <p><small>Nationalité : {{ author.nationality }}</small></p>
+                    <p><small>Nationalité : {{ author.nationality|country_name }}</small></p>
                 </div>
             </div>
         </div>
