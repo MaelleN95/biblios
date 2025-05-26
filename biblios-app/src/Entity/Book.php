@@ -8,7 +8,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
+use function PHPUnit\Framework\equalTo;
+
+#[UniqueEntity(fields: ['isbn'])]
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book
 {
@@ -18,21 +23,30 @@ class Book
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank()]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $isbn = null;
+    #[Assert\NotBlank()]
+    #[Assert\Isbn(type: 'isbn13')]
+    private ?int $isbn = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank()]
+    #[Assert\Url()]
     private ?string $cover = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank()]
     private ?\DateTimeImmutable $editedAt = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank()]
+    #[Assert\Length(min: 20)]
     private ?string $plot = null;
 
     #[ORM\Column]
+    #[Assert\Type(type: 'integer')]
     private ?int $pageNumber = null;
 
     #[ORM\Column(length: 255)]
