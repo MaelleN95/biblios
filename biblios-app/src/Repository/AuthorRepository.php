@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Author;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,7 +17,7 @@ class AuthorRepository extends ServiceEntityRepository
         parent::__construct($registry, Author::class);
     }
 
-    public function findByDateOfBirth(array $dates = []): array
+    public function findByDateOfBirth(array $dates = []): QueryBuilder
     {
         $qb = $this->createQueryBuilder('a');
         
@@ -30,9 +31,7 @@ class AuthorRepository extends ServiceEntityRepository
                 ->setParameter('end', new \DateTimeImmutable($dates['end']));
         }
         
-        return $qb->orderBy('a.dateOfBirth', 'DESC')
-                ->getQuery()
-                ->getResult();
+        return $qb;
     }
 
     //    /**
