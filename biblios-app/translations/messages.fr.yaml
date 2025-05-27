@@ -9,6 +9,7 @@ book:
     status: 'Statut'
     editor: 'Éditeur'
     authors: 'Auteurs'
+    certification: 'Je certifie que ce livre est conforme aux lois en vigueur'
 
 author:
   form:
