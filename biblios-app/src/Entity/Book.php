@@ -26,7 +26,7 @@ class Book
     #[Assert\NotBlank()]
     private ?string $title = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 20)]
     #[Assert\NotBlank()]
     #[Assert\Isbn(type: 'isbn13')]
     private ?int $isbn = null;
