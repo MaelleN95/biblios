@@ -3,16 +3,26 @@
 {% block title %}Register{% endblock %}
 
 {% block body %}
-    <h1>Register</h1>
+    <style>
+        label.required:before {
+            content: "* ";
+        }
+    </style>
 
-    {{ form_errors(registrationForm) }}
+    <section id="about">
+        <div class="container px-4">
+            <div class="row gx-4 justify-content-center">
+                <div class="col-lg-5">
+                    <h2>Enregistrement</h2>
+                    <span class="text-muted"><small>*: champ requis</small></span>
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
-        }) }}
-
-        <button type="submit" class="btn">Register</button>
-    {{ form_end(registrationForm) }}
+                     {{form_start(registrationForm)}}
+                        {{form_widget(registrationForm)}}
+                        <button type="submit" class="btn btn-outline-primary">Enregistrer</button>
+                    {{form_end(registrationForm)}}
+                    
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}

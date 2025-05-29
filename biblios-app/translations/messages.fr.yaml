@@ -22,3 +22,15 @@ author:
 editor:
   form:
     name: "Nom de l'éditeur"
+
+registration:
+  form:
+    first_name: 'Prénom'
+    last_name: 'Nom de famille'
+    username: 'Nom d’utilisateur'
+    email: 'Adresse e-mail'
+    password: 'Mot de passe'
+    roles:
+      label: 'Rôle(s)'
+      user: 'Utilisateur-rice'
+      admin: 'Administrateur-rice'
