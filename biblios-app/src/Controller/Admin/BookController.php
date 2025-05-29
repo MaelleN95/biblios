@@ -11,6 +11,7 @@ use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/admin/book')]
@@ -30,10 +31,16 @@ class BookController extends AbstractController
         ]);
     }
 
+    #[IsGranted('ROLE_AJOUT_DE_LIVRE')]
     #[Route('/new', name: 'app_admin_book_new', methods: ['GET', 'POST'])]
     #[Route('/{id}/edit', name: 'app_admin_book_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function new(?Book $book, Request $request, EntityManagerInterface $manager): Response
     {
+
+        if ($book) {
+            $this->denyAccessUnlessGranted('ROLE_EDITION_DE_LIVRE');
+        }
+
         $book ??= new Book();
         $form = $this->createForm(BookTypeForm::class, $book);
 

@@ -3,15 +3,16 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Editor;
+use Pagerfanta\Pagerfanta;
 use App\Form\EditorTypeForm;
 use App\Repository\EditorRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
-use Pagerfanta\Pagerfanta;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/admin/editor')]
 class EditorController extends AbstractController
@@ -30,10 +31,16 @@ class EditorController extends AbstractController
         ]);
     }
 
+    #[IsGranted('ROLE_AJOUT_DE_LIVRE')]
     #[Route('/new', name: 'app_admin_editor_new', methods: ['GET', 'POST'])]
     #[Route('/{id}/edit', name: 'app_admin_editor_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function new(?Editor $editor, Request $request, EntityManagerInterface $manager): Response
     {
+
+        if ($editor) {
+            $this->denyAccessUnlessGranted('ROLE_EDITION_DE_LIVRE');
+        }
+        
         $editor ??= new Editor();
         $form = $this->createForm(EditorTypeForm::class, $editor);
 
