@@ -40,6 +40,12 @@ security:
 when@test:
   security:
     password_hashers:
+      role_hierarchy:
+        ROLE_USER: ~
+        ROLE_MODERATEUR: ROLE_USER
+        ROLE_AJOUT_DE_LIVRE: ROLE_USER
+        ROLE_EDITION_DE_LIVRE: ROLE_AJOUT_DE_LIVRE
+        ROLE_ADMIN: [ROLE_MODERATEUR, ROLE_EDITION_DE_LIVRE]
       # By default, password hashers are resource intensive and take time. This is
       # important to generate secure password hashes. In tests however, secure hashes
       # are not important, waste resources and increase test times. The following
