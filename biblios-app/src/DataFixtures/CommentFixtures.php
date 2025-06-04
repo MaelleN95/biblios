@@ -34,7 +34,6 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
             );
             $comment->setCreatedAt($createdAt);
 
-            // Faker optional prend 2 arguments depuis la version 1.9 (probabilité + callable)
             $publishedAtDateTime = $faker->optional(0.7, function() use ($faker) {
                 return DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-1 years', 'now'));
             });
@@ -47,7 +46,7 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
             $comment->setPublishedAt($publishedAtDateTime);
 
             $comment->setStatus($faker->randomElement(['approved', 'pending', 'rejected']));
-            $comment->setContent($faker->sentence(2, true));
+            $comment->setContent($faker->realText(100));
 
             $manager->persist($comment);
         }
