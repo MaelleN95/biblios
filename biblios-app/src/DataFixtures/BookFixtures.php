@@ -1,7 +1,7 @@
 <?php
 namespace App\DataFixtures;
 
-use App\Repository\AuthorRepository;
+use App\Entity\Author;
 use Faker\Factory;
 use App\Entity\Book;
 use App\Entity\Editor;
@@ -14,13 +14,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 class BookFixtures extends Fixture implements DependentFixtureInterface
 {
     public const BOOK_REFERENCE = 'book_';
-
-    private AuthorRepository $authorRepository;
-
-    public function __construct(AuthorRepository $authorRepository)
-    {
-        $this->authorRepository = $authorRepository;
-    }
+    public const BOOK_COUNT = 33;
 
     public function load(ObjectManager $manager): void
     {
@@ -38,13 +32,12 @@ class BookFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         $faker = Factory::create('fr_FR');
-        $authors = $this->authorRepository->findAll();
 
-        for ($i = 0; $i < 33; $i++) {
+        for ($i = 0; $i < self::BOOK_COUNT; $i++) {
             $book = new Book();
 
-            $editorReferenceIndex = $faker->numberBetween(0, 4);
-            $editor = $this->getReference(EditorFixtures::EDITOR_REFERENCE . $editorReferenceIndex, Editor::class);
+            $randomEditorReferenceIndex = $faker->numberBetween(0, EditorFixtures::EDITOR_COUNT - 1);
+            $editor = $this->getReference(EditorFixtures::EDITOR_REFERENCE . $randomEditorReferenceIndex, Editor::class);
 
             $book->setEditor($editor);
             $book->setTitle($faker->realText(20));
@@ -57,14 +50,20 @@ class BookFixtures extends Fixture implements DependentFixtureInterface
             $book->setPlot($faker->sentence(10, true));
             $book->setPageNumber($faker->numberBetween(100, 700));
             $book->setStatus($faker->randomElement(BookStatus::cases()));
-            $manager->persist($book);
-            $this->addReference(self::BOOK_REFERENCE . $i, $book);
-
-            // Le livre doit être associé à entre 1 et 3 auteurs
+    
+            // Le livre doit être associé à au moins 1 auteur, au plus 3
             for ($j = 0; $j < rand(1,3); $j++) {
-                $author = $authors[(rand(0,count($authors)-1))];
+                $author = $this->getReference(
+                    AuthorFixtures::AUTHOR_REFERENCE . $faker->numberBetween(0, AuthorFixtures::AUTHOR_COUNT - 1), Author::class
+                );
+                
                 $book->addAuthor($author);
             }
+            
+            $manager->persist($book);
+
+            $this->addReference(self::BOOK_REFERENCE . $i, $book);
+
         }
 
         $manager->flush();

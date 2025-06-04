@@ -10,17 +10,18 @@ use Faker\Factory;
 use DateTimeImmutable;
 
 class CommentFixtures extends Fixture implements DependentFixtureInterface
-{
+{   
+    public const COMMENT_COUNT = 50;
+    
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
 
-        // Création de 50 commentaires aléatoires liés aux livres
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < self::COMMENT_COUNT; $i++) {
             $comment = new Comment();
 
             // Choisir un livre aléatoire
-            $bookIndex = $faker->numberBetween(0, 32);
+            $bookIndex = $faker->numberBetween(0, BookFixtures::BOOK_COUNT - 1);
             $book = $this->getReference(BookFixtures::BOOK_REFERENCE . $bookIndex, Book::class);
 
             $comment->setBook($book);
@@ -54,7 +55,6 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
     }
 
-    // Ajouter le type de retour array pour être compatible avec l'interface
     public function getDependencies(): array
     {
         return [

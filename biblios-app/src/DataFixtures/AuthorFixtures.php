@@ -3,7 +3,6 @@ namespace App\DataFixtures;
 
 use App\Entity\Author;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use DateTimeImmutable;
@@ -11,13 +10,16 @@ use DateTimeImmutable;
 class AuthorFixtures extends Fixture
 {
     public const AUTHOR_REFERENCE = 'author_';
+    public const AUTHOR_COUNT = 22;
 
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
 
-        for ($i = 0; $i < 22; $i++) {
+        for ($i = 0; $i < self::AUTHOR_COUNT; $i++) {
+
             $author = new Author();
+
             $author->setName($faker->name);
 
             // Conversion en DateTimeImmutable
