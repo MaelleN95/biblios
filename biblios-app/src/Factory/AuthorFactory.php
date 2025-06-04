@@ -32,8 +32,10 @@ final class AuthorFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
+            'name' => self::faker()->name(),
             'dateOfBirth' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
-            'name' => self::faker()->text(255),
+            'dateOfDeath' => self::faker()->optional(0.5)->dateTimeBetween('-30 years', 'now') ? \DateTimeImmutable::createFromMutable(self::faker()->dateTimeBetween('-30 years', 'now')) : null,
+            'nationality' => self::faker()->countryCode(),
         ];
     }
 

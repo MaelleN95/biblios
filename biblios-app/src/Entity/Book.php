@@ -29,7 +29,7 @@ class Book
     #[ORM\Column(type: 'string', length: 20)]
     #[Assert\NotBlank()]
     #[Assert\Isbn(type: 'isbn13')]
-    private ?int $isbn = null;
+    private ?string $isbn = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank()]

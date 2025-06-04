@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Comment;
+use App\Enum\CommentStatus;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -32,12 +33,14 @@ final class CommentFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'book' => BookFactory::new(),
-            'content' => self::faker()->text(),
+            'book' => BookFactory::random(),
+            'content' => self::faker()->realText(200),
             'createdAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
-            'email' => self::faker()->text(255),
-            'name' => self::faker()->text(255),
-            'status' => self::faker()->text(255),
+            'publishedAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
+            'email' => self::faker()->email(),
+            'name' => self::faker()->name(),
+            'status' => self::faker()->randomElement(array_column(CommentStatus::cases(), 'value')),
+
         ];
     }
 
