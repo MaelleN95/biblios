@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -60,6 +62,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $lastConnectedAt = null;
+
+    /**
+     * @var Collection<int, Book>
+     */
+    #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'createdBy')]
+    private Collection $books;
+
+    public function __construct()
+    {
+        $this->books = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -178,6 +191,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastConnectedAt(?\DateTimeImmutable $lastConnectedAt): static
     {
         $this->lastConnectedAt = $lastConnectedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Book>
+     */
+    public function getBooks(): Collection
+    {
+        return $this->books;
+    }
+
+    public function addBook(Book $book): static
+    {
+        if (!$this->books->contains($book)) {
+            $this->books->add($book);
+            $book->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBook(Book $book): static
+    {
+        if ($this->books->removeElement($book)) {
+            // set the owning side to null (unless already changed)
+            if ($book->getCreatedBy() === $this) {
+                $book->setCreatedBy(null);
+            }
+        }
 
         return $this;
     }

@@ -1,12 +1,14 @@
 <?php
 namespace App\DataFixtures;
 
-use App\Entity\Author;
 use Faker\Factory;
 use App\Entity\Book;
+use App\Entity\User;
+use App\Entity\Author;
 use App\Entity\Editor;
 use DateTimeImmutable;
 use App\Enum\BookStatus;
+use App\DataFixtures\UserFixtures;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -59,6 +61,8 @@ class BookFixtures extends Fixture implements DependentFixtureInterface
                 
                 $book->addAuthor($author);
             }
+
+            $book->setCreatedBy($this->getReference(UserFixtures::USER_REFERENCE . $faker->numberBetween(0, UserFixtures::USER_COUNT - 1), User::class));
             
             $manager->persist($book);
 
@@ -74,6 +78,7 @@ class BookFixtures extends Fixture implements DependentFixtureInterface
         return [
             EditorFixtures::class,
             AuthorFixtures::class,
+            UserFixtures::class,
         ];
     }
 }

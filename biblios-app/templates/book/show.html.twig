@@ -25,6 +25,9 @@
                     <div class="fs-5 mb-5">
                         <span>Statut: {{ book.status.getLabel() }}</span>
                     </div>
+                    <div class="fs-5 mb-5">
+                        <span>Livre ajouté par : {{book.createdBy.firstname}} {{book.createdBy.lastname }}</span>   
+                    </div>
                     <p class="lead">{{ book.plot }}</p>
                     <div class="d-flex">
                         <a href="{{ path('app_book_index') }}">

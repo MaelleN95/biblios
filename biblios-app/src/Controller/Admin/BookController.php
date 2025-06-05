@@ -46,6 +46,8 @@ class BookController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $book->setCreatedBy($this->getUser());
+
             $manager->persist($book);
             $manager->flush();
 
