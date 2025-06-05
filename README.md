@@ -56,6 +56,27 @@ To stop the containers :
 docker compose down
 ```
 
+## Database management and fixtures
+
+> To use these commands, you need to be in the Docker container.
+
+Create the database and apply migrations :
+```bash
+php bin/console doctrine:database:create
+
+php bin/console doctrine:migrations:migrate
+```
+
+Load fixtures (**warning: resets data**) :
+```bash
+php bin/console doctrine:fixtures:load
+```
+
+If you wish to delete the database completely:
+```bash
+php bin/console doctrine:database:drop --force
+```
+
 ## Notes
 
 - Database credentials are defined in `docker-compose.yml` and Symfony `.env`.
