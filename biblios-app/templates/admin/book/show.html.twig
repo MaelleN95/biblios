@@ -35,6 +35,7 @@
                         </li>
                         <li class="list-group-item"><h5>Nombre de pages : </h5>{{ book.pageNumber }}</li>
                         <li class="list-group-item"><h5>Synopsis : </h5>{{ book.plot }}</li>
+                        <li class="list-group-item"><h5>Créé par : </h5>{{book.createdBy.firstname}} {{book.createdBy.lastname }} - {{book.createdBy.email}}</li>
                     </ul>
                     <div>
                         <img src="{{ book.cover }}" alt="Couverture de {{ book.title }}">
@@ -46,6 +47,9 @@
         <div>Livre non trouvé</div>
     {% endif %}
     <a href="{{ path('app_admin_book_index') }}" class="btn btn-primary">Retour</a>
-    <a href="{{ path('app_admin_book_edit', {id: book.id}) }}" class="btn btn-warning">Éditer</a>
+    {% if book.createdBy and app.user and book.createdBy.id == app.user.id %}
+        <a href="{{ path('app_admin_book_edit', {id: book.id}) }}" class="btn btn-warning">Éditer</a>
+    {% endif %}
+
 </section>
 {% endblock %}

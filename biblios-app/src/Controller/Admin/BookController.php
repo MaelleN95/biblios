@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 #[Route('/admin/book')]
 class BookController extends AbstractController
@@ -39,6 +40,9 @@ class BookController extends AbstractController
 
         if ($book) {
             $this->denyAccessUnlessGranted('ROLE_EDITION_DE_LIVRE');
+            if ($book->getCreatedBy() && $this->getUser() !== $book->getCreatedBy()) {
+                throw new AccessDeniedHttpException("Vous ne pouvez pas modifier les livres que vous n'avez pas ajoutés.");
+            }
         }
 
         $book ??= new Book();
