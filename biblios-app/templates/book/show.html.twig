@@ -47,7 +47,7 @@
                 <ul class="list-group mb-4">
                     {% for comment in comments %}
                         <li class="list-group-item">
-                            <strong>{{ comment.name }}</strong> <span class="text-muted">({{ comment.createdAt|date('d/m/Y à H:i') }})</span>
+                            <strong>{{ comment.user.username }}</strong> <span class="text-muted">({{ comment.createdAt|date('d/m/Y à H:i') }})</span>
                             <p>{{ comment.content }}</p>
                         </li>
                     {% endfor %}

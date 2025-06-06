@@ -1,13 +1,14 @@
 <?php
 namespace App\DataFixtures;
 
-use App\Entity\Book;
-use App\Entity\Comment;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Faker\Factory;
+use App\Entity\Book;
+use App\Entity\User;
 use DateTimeImmutable;
+use App\Entity\Comment;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 class CommentFixtures extends Fixture implements DependentFixtureInterface
 {   
@@ -24,9 +25,12 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
             $bookIndex = $faker->numberBetween(0, BookFixtures::BOOK_COUNT - 1);
             $book = $this->getReference(BookFixtures::BOOK_REFERENCE . $bookIndex, Book::class);
 
+            // Choisir un utilisateur aléatoire
+            $userIndex = $faker->numberBetween(0, UserFixtures::USER_COUNT - 1);
+            $user = $this->getReference(UserFixtures::USER_REFERENCE . $userIndex, User::class);
+
             $comment->setBook($book);
-            $comment->setName($faker->name);
-            $comment->setEmail($faker->email);
+            $comment->setUser($user);
 
             // Convertir DateTime en DateTimeImmutable
             $createdAt = DateTimeImmutable::createFromMutable(
@@ -58,6 +62,7 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
     {
         return [
             BookFixtures::class,
+            UserFixtures::class,
         ];
     }
 }
