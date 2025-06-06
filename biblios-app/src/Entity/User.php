@@ -34,17 +34,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @var string The hashed password
-     * La contrainte Regex valide que le mot de passe :
-     * * contient au moins un chiffre
-     * * contient au moins une lettre en minuscule
-     * * contient au moins une lettre en majuscule
-     * * contient au moins un caractère spécial qui n'est pas un espace
-     * * fait entre 8 et 32 caractères de long
      */
     #[ORM\Column]
-    #[Assert\NotCompromisedPassword()]
-    #[Assert\PasswordStrength(minScore: Assert\PasswordStrength::STRENGTH_STRONG)]
-    #[Assert\Regex('/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).{8,32}$/')]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
