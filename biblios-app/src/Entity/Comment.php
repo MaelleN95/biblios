@@ -45,6 +45,10 @@ class Comment
     #[Assert\NotBlank()] 
     private ?Book $book = null;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $User = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -130,6 +134,18 @@ class Comment
     public function setBook(?Book $book): static
     {
         $this->book = $book;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->User;
+    }
+
+    public function setUser(?User $User): static
+    {
+        $this->User = $User;
 
         return $this;
     }
