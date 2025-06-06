@@ -10,7 +10,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 class UserFixtures extends Fixture
 {
     public const USER_REFERENCE = 'user_';
-    public const USER_COUNT = 12;
+    public const USER_COUNT = 18;
 
     public function load(ObjectManager $manager): void
     {
