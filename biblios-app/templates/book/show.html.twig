@@ -39,5 +39,20 @@
                 </div>
             </div>
         </div>
+        <div class="container px-4 px-lg-5 mt-5">
+            <h2 class="mb-4">Commentaires</h2>
+            {% if comments is empty %}
+                <p>Aucun commentaire pour ce livre.</p>
+            {% else %}
+                <ul class="list-group mb-4">
+                    {% for comment in comments %}
+                        <li class="list-group-item">
+                            <strong>{{ comment.name }}</strong> <span class="text-muted">({{ comment.createdAt|date('d/m/Y à H:i') }})</span>
+                            <p>{{ comment.content }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
     </section>
 {% endblock %}
