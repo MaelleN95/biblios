@@ -20,19 +20,6 @@ class BookFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        $coversUrl = [
-            'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1496104679561-38a8ffea50b6?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1746457002269-106424d702e4?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1473755504818-b72b28a90a13?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=200&q=80',
-        ];
-
         $faker = Factory::create('fr_FR');
 
         for ($i = 0; $i < self::BOOK_COUNT; $i++) {
@@ -44,7 +31,7 @@ class BookFixtures extends Fixture implements DependentFixtureInterface
             $book->setEditor($editor);
             $book->setTitle($faker->realText(20));
             $book->setIsbn($faker->isbn13);
-            $book->setCover($faker->randomElement($coversUrl));
+            $book->setCover('https://picsum.photos/200/300?random=' . $faker->unique()->numberBetween(1, 1000));
 
             $editedAt = DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-10 years', 'now'));
             $book->setEditedAt($editedAt);

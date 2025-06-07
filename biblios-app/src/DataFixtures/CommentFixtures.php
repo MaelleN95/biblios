@@ -12,7 +12,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 class CommentFixtures extends Fixture implements DependentFixtureInterface
 {   
-    public const COMMENT_COUNT = 200;
+    public const COMMENT_COUNT = 300;
     
     public function load(ObjectManager $manager): void
     {
