@@ -35,12 +35,19 @@ class BookController extends AbstractController
 
         $comments = $commentRepository->findBy(['book' => $book], ['createdAt' => 'DESC']);
 
-        // $user = $this->getUser();
-        // dd($user);
+        $user = $this->getUser();
+
+        if ($user !== null) {
+            $userComment = $commentRepository->findOneBy([
+                'User' => $user,
+                'book' => $book,
+            ]);
+        }
         
         return $this->render('book/show.html.twig', [
             'book' => $book,
             'comments' => $comments,
+            'userComment' => $userComment ?? null,
         ]);
     }
 }

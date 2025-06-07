@@ -39,20 +39,35 @@
                 </div>
             </div>
         </div>
-        <div class="container px-4 px-lg-5 mt-5">
-            <h2 class="mb-4">Commentaires</h2>
-            {% if comments is empty %}
-                <p>Aucun commentaire pour ce livre.</p>
-            {% else %}
-                <ul class="list-group mb-4">
-                    {% for comment in comments %}
-                        <li class="list-group-item">
-                            <strong>{{ comment.user.username }}</strong> <span class="text-muted">({{ comment.createdAt|date('d/m/Y à H:i') }})</span>
-                            <p>{{ comment.content }}</p>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+        
+    {% if userComment is not null %}    
+        <div class="container mb-5">
+            <div class="alert alert-info shadow-sm">
+                <h5 class="alert-heading">Votre commentaire</h5>
+                <p class="mb-1">{{ userComment.content }}</p>
+                <small class="text-muted">Posté le {{ userComment.createdAt|date('d/m/Y à H:i') }}</small>
+            </div>
         </div>
-    </section>
+    {% endif %}
+
+    <div class="container mb-5">
+        <h3 class="mb-4 pb-2">Commentaires</h3>
+
+        {% if comments is empty %}
+            <div class="text-muted">Aucun commentaire pour ce livre.</div>
+        {% else %}
+            <div class="list-group shadow-sm">
+                {% for comment in comments %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ comment.user.username }}</h6>
+                            <small class="text-muted">{{ comment.createdAt|date('d/m/Y à H:i') }}</small>
+                        </div>
+                        <p class="mb-1">{{ comment.content }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
 {% endblock %}
