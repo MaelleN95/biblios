@@ -33,6 +33,9 @@ registration:
     roles:
       label: 'Rôle(s)'
       user: 'Utilisateur-rice'
+      moderator: 'Modérateur-rice'
+      book_create: 'Créateur-trice de livre'
+      book_edit: 'Éditeur-trice de livre'
       admin: 'Administrateur-rice'
 
 comment:

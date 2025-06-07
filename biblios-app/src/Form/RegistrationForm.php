@@ -36,6 +36,9 @@ class RegistrationForm extends AbstractType
                 'label' => 'registration.form.roles.label',
                 'choices' => [
                     'registration.form.roles.user' => 'ROLE_USER',
+                    'registration.form.roles.moderator' => 'ROLE_MODERATOR',
+                    'registration.form.roles.book_create' => 'ROLE_BOOK_CREATE',
+                    'registration.form.roles.book_edit' => 'ROLE_BOOK_EDIT',
                     'registration.form.roles.admin' => 'ROLE_ADMIN',
                 ],
                 'multiple' => true,
