@@ -32,14 +32,14 @@ class BookController extends AbstractController
         ]);
     }
 
-    #[IsGranted('ROLE_AJOUT_DE_LIVRE')]
+    #[IsGranted('ROLE_BOOK_CREATE')]
     #[Route('/new', name: 'app_admin_book_new', methods: ['GET', 'POST'])]
     #[Route('/{id}/edit', name: 'app_admin_book_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function new(?Book $book, Request $request, EntityManagerInterface $manager): Response
     {
 
         if ($book) {
-            $this->denyAccessUnlessGranted('ROLE_EDITION_DE_LIVRE');
+            $this->denyAccessUnlessGranted('ROLE_BOOK_EDIT');
             if ($book->getCreatedBy() && $this->getUser() !== $book->getCreatedBy()) {
                 throw new AccessDeniedHttpException("Vous ne pouvez pas modifier les livres que vous n'avez pas ajoutés.");
             }

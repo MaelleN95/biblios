@@ -5,10 +5,10 @@ security:
 
   role_hierarchy:
     ROLE_USER: ~
-    ROLE_MODERATEUR: ROLE_USER
-    ROLE_AJOUT_DE_LIVRE: ROLE_USER
-    ROLE_EDITION_DE_LIVRE: ROLE_AJOUT_DE_LIVRE
-    ROLE_ADMIN: [ROLE_MODERATEUR, ROLE_EDITION_DE_LIVRE]
+    ROLE_MODERATOR: ROLE_USER
+    ROLE_BOOK_CREATE: ROLE_USER
+    ROLE_BOOK_EDIT: ROLE_BOOK_CREATE
+    ROLE_ADMIN: [ROLE_MODERATOR, ROLE_BOOK_EDIT]
 
   # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
   providers:
