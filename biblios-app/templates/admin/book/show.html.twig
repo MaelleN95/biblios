@@ -34,7 +34,7 @@
                             <a href="{{ path('app_admin_editor_show', {id: book.editor.id}) }}">{{ book.editor.name }}</a>
                         </li>
                         <li class="list-group-item"><h5>Nombre de pages : </h5>{{ book.pageNumber }}</li>
-                        <li class="list-group-item"><h5>Synopsis : </h5>{{ book.plot }}</li>
+                        <li class="list-group-item text-break"><h5>Synopsis : </h5>{{ book.plot }}</li>
                         <li class="list-group-item"><h5>Créé par : </h5>{{book.createdBy.firstname}} {{book.createdBy.lastname }} - {{book.createdBy.email}}</li>
                     </ul>
                     <div>
