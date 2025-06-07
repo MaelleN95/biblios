@@ -33,6 +33,10 @@ class BookController extends AbstractController
     public function show(?Book $book, CommentRepository $commentRepository): Response
     {
 
+        if ($book === null) {
+            throw $this->createNotFoundException('Book not found');
+        }
+        
         $comments = $commentRepository->findBy(['book' => $book], ['createdAt' => 'DESC']);
 
         $user = $this->getUser();
