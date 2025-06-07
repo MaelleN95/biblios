@@ -7,17 +7,20 @@ use App\Enum\CommentStatus;
 use App\Form\CommentTypeForm;
 use App\Repository\BookRepository;
 use App\Repository\CommentRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/book/{bookId}/comment', requirements: ['bookId' => '\d+'])]
 final class CommentController extends AbstractController
 {
+
     #[Route('/new', name: 'app_comment_new', methods: ['GET', 'POST'])]
     #[Route('/{id}/edit', name: 'app_comment_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function form(
@@ -26,7 +29,8 @@ final class CommentController extends AbstractController
         Request $request,
         BookRepository $bookRepository,
         CommentRepository $commentRepository,
-        EntityManagerInterface $manager
+        EntityManagerInterface $manager,
+        TranslatorInterface $translator
     ): Response
     {
 
@@ -35,7 +39,7 @@ final class CommentController extends AbstractController
 
         // Si pas trouvé de livre
         if (!$book) {
-            throw $this->createNotFoundException('Book not found');
+            throw $this->createNotFoundException($translator->trans('comment.exception.book_not_found'));
         }
 
         // Si un commentaire existe déjà
@@ -45,11 +49,10 @@ final class CommentController extends AbstractController
             }
         } else {
             if ($commentRepository->findBy(['user' => $connectedUser, 'book' => $book])) {
-                throw $this->createAccessDeniedException('Comment already posted');
+                throw $this->createAccessDeniedException($translator->trans('comment.exception.already_posted'));
             }
-            
-            $comment ??= new Comment();
-            $comment->setCreatedAt(new \DateTimeImmutable('Europe/Paris'));
+            $comment = new Comment();
+            $comment->setCreatedAt(new DateTimeImmutable('Europe/Paris'));
             $comment->setUser($this->getUser());
             $comment->setBook($book);
         }
@@ -61,7 +64,7 @@ final class CommentController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($comment->getId()) {
-                $comment->setPublishedAt(new \DateTimeImmutable('Europe/Paris'));
+                $comment->setPublishedAt(new DateTimeImmutable('Europe/Paris'));
             } else {
                 $comment->setPublishedAt(null);
             }            

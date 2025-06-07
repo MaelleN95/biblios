@@ -38,3 +38,6 @@ registration:
 comment:
   form:
     content: 'Votre commentaire'
+  exception:
+    already_posted: 'Commentaire déjà posté'
+    book_not_found: 'Livre non trouvé'
