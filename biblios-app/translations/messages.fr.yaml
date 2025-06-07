@@ -34,3 +34,7 @@ registration:
       label: 'Rôle(s)'
       user: 'Utilisateur-rice'
       admin: 'Administrateur-rice'
+
+comment:
+  form:
+    content: 'Votre commentaire'

@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ is_edit ? 'Modifier votre commentaire' : 'Nouveau commentaire' }}
+{% endblock %}
+
+{% block body %}
+<section>
+    <div class="container mt-5">
+        <h1 class="mb-4">{{ is_edit ? 'Modifier votre commentaire' : 'Écrire un commentaire' }}</h1>
+        
+        {{form_start(form)}}
+            {{form_widget(form)}}
+            <button type="submit" class="btn btn-primary">
+                    {{ is_edit ? 'Mettre à jour' : 'Publier' }}
+                </button> 
+        {{form_end(form)}}
+    </div>
+</section>
+{% endblock %}
