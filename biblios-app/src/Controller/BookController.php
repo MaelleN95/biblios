@@ -39,7 +39,7 @@ class BookController extends AbstractController
 
         if ($user !== null) {
             $userComment = $commentRepository->findOneBy([
-                'User' => $user,
+                'user' => $user,
                 'book' => $book,
             ]);
         }
