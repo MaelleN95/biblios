@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Enum\BookStatus;
 use App\Repository\BookRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -38,7 +39,7 @@ class Book
 
     #[ORM\Column]
     #[Assert\NotBlank()]
-    private ?\DateTimeImmutable $editedAt = null;
+    private ?DateTimeImmutable $editedAt = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank()]
@@ -113,12 +114,12 @@ class Book
         return $this;
     }
 
-    public function getEditedAt(): ?\DateTimeImmutable
+    public function getEditedAt(): ?DateTimeImmutable
     {
         return $this->editedAt;
     }
 
-    public function setEditedAt(\DateTimeImmutable $editedAt): static
+    public function setEditedAt(DateTimeImmutable $editedAt): static
     {
         $this->editedAt = $editedAt;
 

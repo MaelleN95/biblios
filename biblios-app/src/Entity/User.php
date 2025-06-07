@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -52,7 +53,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $lastConnectedAt = null;
+    private ?DateTimeImmutable $lastConnectedAt = null;
 
     /**
      * @var Collection<int, Book>
@@ -181,12 +182,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getLastConnectedAt(): ?\DateTimeImmutable
+    public function getLastConnectedAt(): ?DateTimeImmutable
     {
         return $this->lastConnectedAt;
     }
 
-    public function setLastConnectedAt(?\DateTimeImmutable $lastConnectedAt): static
+    public function setLastConnectedAt(?DateTimeImmutable $lastConnectedAt): static
     {
         $this->lastConnectedAt = $lastConnectedAt;
 

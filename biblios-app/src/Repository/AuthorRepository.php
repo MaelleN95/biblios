@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Author;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -23,12 +24,12 @@ class AuthorRepository extends ServiceEntityRepository
         
         if (\array_key_exists('start', $dates)) {
             $qb->andWhere('a.dateOfBirth >= :start')
-                ->setParameter('start', new \DateTimeImmutable($dates['start']));
+                ->setParameter('start', new DateTimeImmutable($dates['start']));
         }
         
         if (\array_key_exists('end', $dates)) {
             $qb->andWhere('a.dateOfBirth <= :end')
-                ->setParameter('end', new \DateTimeImmutable($dates['end']));
+                ->setParameter('end', new DateTimeImmutable($dates['end']));
         }
         
         return $qb;

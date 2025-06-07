@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
@@ -19,7 +20,7 @@ final class LastConnexionListener
     {
         $user = $event->getAuthenticationToken()->getUser();
         if ($user instanceof User) {
-            $user->setLastConnectedAt(new \DateTimeImmutable());
+            $user->setLastConnectedAt(new DateTimeImmutable());
             $this->manager->flush();
         }
     }

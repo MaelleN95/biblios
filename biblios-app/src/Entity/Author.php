@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\AuthorRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -26,11 +27,11 @@ class Author
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Assert\NotBlank()]
-    private ?\DateTimeImmutable $dateOfBirth = null;
+    private ?DateTimeImmutable $dateOfBirth = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Assert\GreaterThan(propertyPath: 'dateOfBirth')]
-    private ?\DateTimeImmutable $dateOfDeath = null;
+    private ?DateTimeImmutable $dateOfDeath = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $nationality = null;
@@ -60,24 +61,24 @@ class Author
         return $this;
     }
 
-    public function getDateOfBirth(): ?\DateTimeImmutable
+    public function getDateOfBirth(): ?DateTimeImmutable
     {
         return $this->dateOfBirth;
     }
 
-    public function setDateOfBirth(\DateTimeImmutable $dateOfBirth): static
+    public function setDateOfBirth(DateTimeImmutable $dateOfBirth): static
     {
         $this->dateOfBirth = $dateOfBirth;
 
         return $this;
     }
 
-    public function getDateOfDeath(): ?\DateTimeImmutable
+    public function getDateOfDeath(): ?DateTimeImmutable
     {
         return $this->dateOfDeath;
     }
 
-    public function setDateOfDeath(?\DateTimeImmutable $dateOfDeath): static
+    public function setDateOfDeath(?DateTimeImmutable $dateOfDeath): static
     {
         $this->dateOfDeath = $dateOfDeath;
 
