@@ -18,8 +18,14 @@ class BookController extends AbstractController
     #[Route('', name: 'app_book_index', methods: ['GET'])]
     public function index(Request $request, BookRepository $repository): Response
     {
+        // Create a query builder for the Book repository
+        $qb = $repository->createQueryBuilder('b');
+
+        // Use the orderByTitle method to sort books by title, based on the 'order' query parameter
+        $qb = $repository->orderByTitle($qb, $request->query->get('order', 'ASC'));
+
         $books = Pagerfanta::createForCurrentPageWithMaxPerPage(
-            new QueryAdapter($repository->createQueryBuilder('b')),
+            new QueryAdapter($qb),
             $request->query->get('page', 1),
             20
         );

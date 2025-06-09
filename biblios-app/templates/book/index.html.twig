@@ -5,6 +5,19 @@
 {% block body %}
 <section class="py-5">
     <div class="container px-4 px-lg-5 mt-5">
+        <div class="d-flex justify-content-start gap-3 my-4">
+            <a href="{{ path('app_book_index', { order: 'ASC', page: books.currentPage }) }}"
+            class="btn {{ app.request.get('order') == 'ASC' ? 'btn-light' : 'btn-outline-light' }} d-flex align-items-center gap-2"
+            title="Trier par ordre alphabétique croissant">
+                A &rarr; Z
+            </a>
+
+            <a href="{{ path('app_book_index', { order: 'DESC', page: books.currentPage }) }}"
+            class="btn {{ app.request.get('order') == 'DESC' ? 'btn-light' : 'btn-outline-light' }} d-flex align-items-center gap-2"
+            title="Trier par ordre alphabétique décroissant">
+                Z &rarr; A
+            </a>
+        </div>
         <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
             {% for book in books %}
             <div class="col mb-5">

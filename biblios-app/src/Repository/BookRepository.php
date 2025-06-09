@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Book;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -14,6 +15,17 @@ class BookRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Book::class);
+    }
+
+    public function orderByTitle(QueryBuilder $queryBuilder, string $order = 'ASC'): QueryBuilder
+    {
+        $allowedOrders = ['ASC', 'DESC'];
+
+        if (!in_array($order, $allowedOrders, true)) {
+            throw new \InvalidArgumentException();
+        }        
+
+        return $queryBuilder->orderBy('b.title', $order);
     }
 
 //    /**
