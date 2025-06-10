@@ -62,7 +62,7 @@ jobs:
           echo "Déploiement des fichiers backend vers $BACK_END_REPO"
           cd ${{ env.PROJECT_NAME }}
           rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-            bin config src templates translations vendor .env \
+            bin config src migrations templates translations .env \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
 
       - name: Build Symfony app locally
