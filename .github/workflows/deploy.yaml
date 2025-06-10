@@ -23,15 +23,13 @@ jobs:
 
       - name: Install Composer dependencies (no dev)
         run: 
-          PROJET_NAME=biblios-app
-          cd ${PROJET_NAME}
+          cd biblios-app
           composer install --no-dev --optimize-autoloader
 
 
       - name: Symfony cache warmup
         run: |
-          PROJET_NAME=biblios-app
-          cd ${PROJET_NAME}
+          cd biblios-app
           php bin/console cache:clear --env=prod
           php bin/console cache:warmup --env=prod
 
