@@ -40,13 +40,6 @@ jobs:
           echo "APP_SECRET=${{ secrets.APP_SECRET }}" >> .env.prod
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.prod
 
-      - name: Symfony cache warmup
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          cp .env.prod .env
-          php bin/console cache:clear --env=prod
-          php bin/console cache:warmup --env=prod
-
       - name: Create Hostinger-specific index.php
         run: |
           cd ${{ env.PROJECT_NAME }}
@@ -147,3 +140,10 @@ jobs:
              chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/ && \
              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/cache/ && \
              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/log/"
+            
+      - name: Symfony cache warmup
+        run: |
+          cd ${{ env.PROJECT_NAME }}
+          cp .env.prod .env
+          php bin/console cache:clear --env=prod
+          php bin/console cache:warmup --env=prod
