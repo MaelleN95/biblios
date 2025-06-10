@@ -72,7 +72,7 @@ jobs:
           echo "APP_DEBUG=0" >> .env
           echo "APP_SECRET=${{ secrets.APP_SECRET }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          composer install --optimize-autoloader
+          composer install --no-dev --optimize-autoloader --no-scripts
 
       - name: Run database create on Hostinger
         run: |
