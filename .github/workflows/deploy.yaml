@@ -81,6 +81,7 @@ jobs:
 
       - name: Install Importmap assets
         run: |
+          cd ${{ env.PROJECT_NAME }}
           php bin/console importmap:install --no-interaction --env=prod
           php bin/console importmap:pin @hotwired/stimulus --no-interaction --env=prod
 
