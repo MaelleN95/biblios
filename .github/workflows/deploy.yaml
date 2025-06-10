@@ -97,38 +97,38 @@ jobs:
              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/cache/ && \
              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/log/"
 
-      - name: Check if secrets are set
-        run: |
-          if [ -z "${{ secrets.APP_SECRET }}" ]; then
-            echo "APP_SECRET is not set"
-          else
-            echo "APP_SECRET is set"
-          fi
-          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
-            echo "DATABASE_URL is not set"
-          else
-            echo "DATABASE_URL is set"
-          fi
-          if [ -z "${{ secrets.HOSTINGER_USERNAME }}" ]; then
-            echo "HOSTINGER_USERNAME is not set"
-          else
-            echo "HOSTINGER_USERNAME is set"
-          fi
+      # - name: Check if secrets are set
+      #   run: |
+      #     if [ -z "${{ secrets.APP_SECRET }}" ]; then
+      #       echo "APP_SECRET is not set"
+      #     else
+      #       echo "APP_SECRET is set"
+      #     fi
+      #     if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+      #       echo "DATABASE_URL is not set"
+      #     else
+      #       echo "DATABASE_URL is set"
+      #     fi
+      #     if [ -z "${{ secrets.HOSTINGER_USERNAME }}" ]; then
+      #       echo "HOSTINGER_USERNAME is not set"
+      #     else
+      #       echo "HOSTINGER_USERNAME is set"
+      #     fi
              
-      - name: Configure environment for production
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          echo "APP_ENV=prod" > .env
-          echo "APP_DEBUG=0" >> .env
-          echo "APP_SECRET="${{ secrets.APP_SECRET }}"" >> .env
-          echo "DATABASE_URL="${{ secrets.DATABASE_URL }}"" >> .env
+      # - name: Configure environment for production
+      #   run: |
+      #     cd ${{ env.PROJECT_NAME }}
+      #     echo "APP_ENV=prod" > .env
+      #     echo "APP_DEBUG=0" >> .env
+      #     echo "APP_SECRET="${{ secrets.APP_SECRET }}"" >> .env
+      #     echo "DATABASE_URL="${{ secrets.DATABASE_URL }}"" >> .env
 
 
-      - name: Test Database Connection
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          echo '<?php $databaseUrl = getenv("DATABASE_URL"); if (empty($databaseUrl)) { die("DATABASE_URL is not set."); } $databaseConfig = parse_url($databaseUrl); $host = $databaseConfig["host"]; $dbname = ltrim($databaseConfig["path"], "/"); $username = $databaseConfig["user"]; $password = $databaseConfig["pass"]; $port = $databaseConfig["port"] ?? 3306; try { $conn = new PDO("mysql:host=$host;port=$port;dbname=$dbname", $username, $password); echo "Connected successfully to the database."; } catch (PDOException $e) { die("Connection failed: " . $e->getMessage()); } ?>' > test_db_connection.php
-          php test_db_connection.php
+      # - name: Test Database Connection
+      #   run: |
+      #     cd ${{ env.PROJECT_NAME }}
+      #     echo '<?php $databaseUrl = getenv("DATABASE_URL"); if (empty($databaseUrl)) { die("DATABASE_URL is not set."); } $databaseConfig = parse_url($databaseUrl); $host = $databaseConfig["host"]; $dbname = ltrim($databaseConfig["path"], "/"); $username = $databaseConfig["user"]; $password = $databaseConfig["pass"]; $port = $databaseConfig["port"] ?? 3306; try { $conn = new PDO("mysql:host=$host;port=$port;dbname=$dbname", $username, $password); echo "Connected successfully to the database."; } catch (PDOException $e) { die("Connection failed: " . $e->getMessage()); } ?>' > test_db_connection.php
+      #     php test_db_connection.php
     
       - name: Install Composer dependencies (no dev)
         run: |
