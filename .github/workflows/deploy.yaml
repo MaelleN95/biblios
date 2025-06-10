@@ -79,6 +79,12 @@ jobs:
           echo "APP_DEBUG=0" >> .env
           composer install --no-dev --optimize-autoloader --no-scripts
 
+      - name: Install Importmap assets
+        run: |
+          php bin/console importmap:install --no-interaction --env=prod
+          php bin/console importmap:pin @hotwired/stimulus --no-interaction --env=prod
+
+
       - name: Inject DATABASE_URL on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
