@@ -9,11 +9,6 @@ env:
   PROJECT_NAME: "biblios-app"
   PROJECT_DOMAIN: "green-pony-128403.hostingersite.com"
   PHP_VERSION: "8.2"
-  HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
-  HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
-  HOSTINGER_USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
-  HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }} 
-
 
 jobs:
   deploy:
@@ -36,36 +31,93 @@ jobs:
           cd ${{ env.PROJECT_NAME }}
           composer install --no-dev --optimize-autoloader
 
+      - name: Configure environment for production
+        run: |
+          cd ${{ env.PROJECT_NAME }}
+          # Créer un .env.prod temporaire
+          echo "APP_ENV=prod" > .env.prod
+          echo "APP_DEBUG=false" >> .env.prod
+          echo "APP_SECRET=${{ secrets.APP_SECRET }}" >> .env.prod
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.prod
 
       - name: Symfony cache warmup
         run: |
           cd ${{ env.PROJECT_NAME }}
+          cp .env.prod .env
           php bin/console cache:clear --env=prod
           php bin/console cache:warmup --env=prod
 
+      - name: Create Hostinger-specific index.php
+        run: |
+          cd ${{ env.PROJECT_NAME }}
+          cat > public/index.php << 'EOF'
+          <?php
+          
+          use App\Kernel;
+          
+          // Chemin vers le dossier symfony-app sur Hostinger
+          $symfonyAppPath = dirname(__DIR__) . '/symfony-app';
+          
+          require_once $symfonyAppPath . '/vendor/autoload_runtime.php';
+          
+          return function (array $context) use ($symfonyAppPath) {
+              // Définir le répertoire de travail vers symfony-app
+              chdir($symfonyAppPath);
+              
+              return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+          };
+          EOF
+
+      - name: Create .htaccess for public_html
+        run: |
+          cd ${{ env.PROJECT_NAME }}
+          cat > public/.htaccess << 'EOF'
+          DirectoryIndex index.php
+          
+          <IfModule mod_negotiation.c>
+              Options -MultiViews
+          </IfModule>
+          
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+          
+              # Handle Authorization Header
+              RewriteCond %{HTTP:Authorization} .
+              RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+          
+              # Send would-be 404 requests to Symfony front controller
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteRule ^(.*)$ index.php [QSA,L]
+          </IfModule>
+          
+          <IfModule !mod_rewrite.c>
+              <IfModule mod_alias.c>
+                  RedirectMatch 307 ^/$ /index.php/
+              </IfModule>
+          </IfModule>
+          EOF
 
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ env.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
 
       - name: Add Hostinger to known hosts
         run: |
-          ssh-keyscan -p ${{ env.HOSTINGER_SSH_PORT }} ${{ env.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
 
-      - name: Deploy Symfony public dictectory
+      - name: Deploy Symfony public directory
         run: |
-          FRONT_END_REPO="/home/${{ env.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/"
-
-          # Vérification si le dossier public existe et le synchroniser
+          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
+          
           if [ -d "${{ env.PROJECT_NAME }}/public" ]; then
             echo "Déploiement du dossier public vers $FRONT_END_REPO"
-            rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" \
+            rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
               ${{ env.PROJECT_NAME }}/public/ \
-              ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:$FRONT_END_REPO
+              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
           else
             echo "Erreur: Le dossier public n'existe pas dans ${{ env.PROJECT_NAME }}/"
             exit 1
@@ -73,13 +125,25 @@ jobs:
           
       - name: Deploy Symfony backend files
         run: |
-          BACK_END_REPO="/home/${{ env.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/symfony-app/"
-
+          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
+          
           echo "Création du répertoire backend: $BACK_END_REPO"
-          ssh -p ${{ env.HOSTINGER_SSH_PORT }} ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }} "mkdir -p $BACK_END_REPO"
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            "mkdir -p $BACK_END_REPO"
           
           echo "Déploiement des fichiers backend vers $BACK_END_REPO"
           cd ${{ env.PROJECT_NAME }}
-          rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" \
-          bin config src templates translations var vendor .env \
-          ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:$BACK_END_REPO
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+            bin config src templates translations var vendor .env \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
+
+      - name: Set permissions
+        run: |
+          echo "Configuration des permissions"
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            "chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/ && \
+             chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/ && \
+             chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/cache/ && \
+             chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/log/"
