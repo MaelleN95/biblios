@@ -109,6 +109,11 @@ jobs:
           else
             echo "DATABASE_URL is set"
           fi
+          if [ -z "${{ secrets.HOSTINGER_USERNAME }}" ]; then
+            echo "HOSTINGER_USERNAME is not set"
+          else
+            echo "HOSTINGER_USERNAME is set"
+          fi
              
       - name: Configure environment for production
         run: |
