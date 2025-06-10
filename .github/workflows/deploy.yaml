@@ -25,6 +25,13 @@ jobs:
             extensions: mbstring, intl, pdo, pdo_mysql, ctype, iconv, xml, zip
             tools: composer
 
+      - name: Update Composer to v2
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.8.6
+          php -r "unlink('composer-setup.php');"
+          composer --version
+
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
@@ -78,7 +85,6 @@ jobs:
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            composer require symfony/orm-pack &&
             php bin/console doctrine:database:create --if-not-exists --env=prod
           "
       - name: Run migrations and Symfony commands
