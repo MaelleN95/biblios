@@ -44,7 +44,7 @@ jobs:
           echo "APP_SECRET=${{ secrets.APP_SECRET }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           composer install --no-dev --optimize-autoloader --no-scripts
-          
+
       - name: Deploy Symfony public directory
         run: |
           FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
@@ -71,7 +71,7 @@ jobs:
           echo "Déploiement des fichiers backend vers $BACK_END_REPO"
           cd ${{ env.PROJECT_NAME }}
           rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-            bin config src templates translations var vendor .env \
+            bin config src templates translations vendor .env \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
 
       - name: Run database create on Hostinger
