@@ -22,7 +22,7 @@ jobs:
 
 
       - name: Install Composer dependencies (no dev)
-        run: 
+        run: |
           cd biblios-app
           composer install --no-dev --optimize-autoloader
 
