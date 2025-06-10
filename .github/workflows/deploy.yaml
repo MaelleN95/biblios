@@ -69,7 +69,7 @@ jobs:
           echo "Déploiement des fichiers backend vers $BACK_END_REPO"
           cd ${{ env.PROJECT_NAME }}
           rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-            bin config src migrations templates translations .env \
+            assets bin config src migrations templates translations .env composer.json composer.lock importmap.php \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
 
       - name: Build Symfony app locally
@@ -97,6 +97,7 @@ jobs:
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
             php bin/console doctrine:database:create --if-not-exists --env=prod
           "
+
       - name: Run migrations and Symfony commands
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
