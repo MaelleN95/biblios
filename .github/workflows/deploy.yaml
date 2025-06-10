@@ -13,11 +13,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Change directory to Symfony app
-        run: 
-            PROJET_NAME=biblios-app
-            cd ${PROJET_NAME}
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -27,11 +22,16 @@ jobs:
 
 
       - name: Install Composer dependencies (no dev)
-        run: composer install --no-dev --optimize-autoloader
+        run: 
+          PROJET_NAME=biblios-app
+          cd ${PROJET_NAME}
+          composer install --no-dev --optimize-autoloader
 
 
       - name: Symfony cache warmup
         run: |
+          PROJET_NAME=biblios-app
+          cd ${PROJET_NAME}
           php bin/console cache:clear --env=prod
           php bin/console cache:warmup --env=prod
 
