@@ -36,12 +36,6 @@ jobs:
         run: |
           ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
-
-      - name: Install Composer dependencies (no dev)
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          composer install --no-dev --optimize-autoloader
-
       - name: Configure environment for production
         run: |
           cd ${{ env.PROJECT_NAME }}
@@ -99,7 +93,12 @@ jobs:
                   RedirectMatch 307 ^/$ /index.php/
               </IfModule>
           </IfModule>
-          EOF
+          EOF      
+          
+      - name: Install Composer dependencies (no dev)
+        run: |
+          cd ${{ env.PROJECT_NAME }}
+          composer install --no-dev --optimize-autoloader
 
       - name: Deploy Symfony public directory
         run: |
