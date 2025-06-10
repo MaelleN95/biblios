@@ -5,6 +5,16 @@ on:
     branches:
       - main
 
+env:
+  PROJECT_NAME: "biblios-app"
+  PROJECT_DOMAIN: "green-pony-128403.hostingersite.com"
+  PHP_VERSION: "8.2"
+  HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+  HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
+  HOSTINGER_USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
+  HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }} 
+
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,20 +26,20 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-            php-version: '8.2'
+            php-version: ${{ env.PHP_VERSION }}
             extensions: mbstring, intl, pdo, pdo_mysql, ctype, iconv, xml, zip
             tools: composer
 
 
       - name: Install Composer dependencies (no dev)
         run: |
-          cd biblios-app
+          cd ${{ env.PROJECT_NAME }}
           composer install --no-dev --optimize-autoloader
 
 
       - name: Symfony cache warmup
         run: |
-          cd biblios-app
+          cd ${{ env.PROJECT_NAME }}
           php bin/console cache:clear --env=prod
           php bin/console cache:warmup --env=prod
 
@@ -37,29 +47,41 @@ jobs:
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+          echo "${{ env.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
 
       - name: Add Hostinger to known hosts
         run: |
-          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ env.HOSTINGER_SSH_PORT }} ${{ env.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
 
       - name: Deploy Symfony public dictectory
         run: |
-          PROJECT_DOMAIN="green-pony-128403.hostingersite.com"
-          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/"
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" public/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
+          FRONT_END_REPO="/home/${{ env.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/"
 
+          # Vérification si le dossier public existe et le synchroniser
+          if [ -d "${{ env.PROJECT_NAME }}/public" ]; then
+            echo "Déploiement du dossier public vers $FRONT_END_REPO"
+            rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" \
+              ${{ env.PROJECT_NAME }}/public/ \
+              ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:$FRONT_END_REPO
+          else
+            echo "Erreur: Le dossier public n'existe pas dans ${{ env.PROJECT_NAME }}/"
+            exit 1
+          fi
+          
       - name: Deploy Symfony backend files
         run: |
-          PROJECT_DOMAIN="green-pony-128403.hostingersite.com"
-          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/symfony-app/"
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "mkdir -p $BACK_END_REPO"
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+          BACK_END_REPO="/home/${{ env.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/symfony-app/"
+
+          echo "Création du répertoire backend: $BACK_END_REPO"
+          ssh -p ${{ env.HOSTINGER_SSH_PORT }} ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }} "mkdir -p $BACK_END_REPO"
+          
+          echo "Déploiement des fichiers backend vers $BACK_END_REPO"
+          cd ${{ env.PROJECT_NAME }}
+          rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" \
           bin config src templates translations var vendor .env \
-          ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
-            
-          PROJECT_DOMAIN="green-pony-128403.hostingersite.com"
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" dist/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/
+          ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:$BACK_END_REPO
+
+          rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" dist/ ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:/home/${{ env.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/
