@@ -68,9 +68,15 @@ jobs:
           
           echo "Déploiement des fichiers backend vers $BACK_END_REPO"
           cd ${{ env.PROJECT_NAME }}
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-            assets bin config src migrations templates translations .env composer.json composer.lock importmap.php \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
+          rsync -avz --delete \
+            --exclude='public/' \
+            --exclude='tests/' \
+            --exclude='*.env.test' \
+            --exclude='*.env.dev' \
+            --exclude='compose*' \
+            -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+            ./ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
+
 
       - name: Build Symfony app locally
         run: |
@@ -101,13 +107,6 @@ jobs:
             php bin/console cache:clear --no-warmup --env=prod &&
             php bin/console cache:warmup --env=prod
           "
-      
-      - name: Install Importmap assets
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          export DATABASE_URL="${{ secrets.DATABASE_URL }}"
-          php bin/console importmap:install --no-interaction --env=prod
-          php bin/console importmap:pin @hotwired/stimulus --no-interaction --env=prod
 
       - name: Set permissions
         run: |
