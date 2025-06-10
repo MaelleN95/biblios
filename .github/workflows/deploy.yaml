@@ -83,5 +83,3 @@ jobs:
           rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" \
           bin config src templates translations var vendor .env \
           ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:$BACK_END_REPO
-
-          rsync -avz --delete -e "ssh -p ${{ env.HOSTINGER_SSH_PORT }}" dist/ ${{ env.HOSTINGER_USERNAME }}@${{ env.HOSTINGER_HOST }}:/home/${{ env.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/
