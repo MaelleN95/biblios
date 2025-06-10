@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up PHP
+      - name: Set up PHP & Composer
         uses: shivammathur/setup-php@v2
         with:
             php-version: ${{ env.PHP_VERSION }}
@@ -36,137 +36,34 @@ jobs:
         run: |
           ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
-
-      - name: Create Hostinger-specific index.php
+      - name: Build Symfony app locally
         run: |
           cd ${{ env.PROJECT_NAME }}
-          cat > public/index.php << 'EOF'
-          <?php
-          
-          use App\Kernel;
-          
-          // Chemin vers le dossier symfony-app sur Hostinger
-          $symfonyAppPath = dirname(__DIR__) . '/symfony-app';
-          
-          require_once $symfonyAppPath . '/vendor/autoload_runtime.php';
-          
-          return function (array $context) use ($symfonyAppPath) {
-              // Définir le répertoire de travail vers symfony-app
-              chdir($symfonyAppPath);
-              
-              return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
-          };
-          EOF
-
-      - name: Create .htaccess for public_html
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          cat > public/.htaccess << 'EOF'
-          DirectoryIndex index.php
-          
-          <IfModule mod_negotiation.c>
-              Options -MultiViews
-          </IfModule>
-          
-          <IfModule mod_rewrite.c>
-              RewriteEngine On
-          
-              # Handle Authorization Header
-              RewriteCond %{HTTP:Authorization} .
-              RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-          
-              # Send would-be 404 requests to Symfony front controller
-              RewriteCond %{REQUEST_FILENAME} !-f
-              RewriteRule ^(.*)$ index.php [QSA,L]
-          </IfModule>
-          
-          <IfModule !mod_rewrite.c>
-              <IfModule mod_alias.c>
-                  RedirectMatch 307 ^/$ /index.php/
-              </IfModule>
-          </IfModule>
-          EOF      
-          
-      - name: Set permissions
-        run: |
-          echo "Configuration des permissions"
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            "chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/ && \
-             chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/ && \
-             chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/cache/ && \
-             chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/log/"
-
-      # - name: Check if secrets are set
-      #   run: |
-      #     if [ -z "${{ secrets.APP_SECRET }}" ]; then
-      #       echo "APP_SECRET is not set"
-      #     else
-      #       echo "APP_SECRET is set"
-      #     fi
-      #     if [ -z "${{ secrets.DATABASE_URL }}" ]; then
-      #       echo "DATABASE_URL is not set"
-      #     else
-      #       echo "DATABASE_URL is set"
-      #     fi
-      #     if [ -z "${{ secrets.HOSTINGER_USERNAME }}" ]; then
-      #       echo "HOSTINGER_USERNAME is not set"
-      #     else
-      #       echo "HOSTINGER_USERNAME is set"
-      #     fi
-             
-      # - name: Configure environment for production
-      #   run: |
-      #     cd ${{ env.PROJECT_NAME }}
-      #     echo "APP_ENV=prod" > .env
-      #     echo "APP_DEBUG=0" >> .env
-      #     echo "APP_SECRET="${{ secrets.APP_SECRET }}"" >> .env
-      #     echo "DATABASE_URL="${{ secrets.DATABASE_URL }}"" >> .env
-
-
-      # - name: Test Database Connection
-      #   run: |
-      #     cd ${{ env.PROJECT_NAME }}
-      #     echo '<?php $databaseUrl = getenv("DATABASE_URL"); if (empty($databaseUrl)) { die("DATABASE_URL is not set."); } $databaseConfig = parse_url($databaseUrl); $host = $databaseConfig["host"]; $dbname = ltrim($databaseConfig["path"], "/"); $username = $databaseConfig["user"]; $password = $databaseConfig["pass"]; $port = $databaseConfig["port"] ?? 3306; try { $conn = new PDO("mysql:host=$host;port=$port;dbname=$dbname", $username, $password); echo "Connected successfully to the database."; } catch (PDOException $e) { die("Connection failed: " . $e->getMessage()); } ?>' > test_db_connection.php
-      #     php test_db_connection.php
-    
-      - name: Install Composer dependencies (no dev)
-        run: |
-          cd ${{ env.PROJECT_NAME }}
+          echo "APP_ENV=prod" > .env
+          echo "APP_DEBUG=0" >> .env
+          echo "APP_SECRET=${{ secrets.APP_SECRET }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           composer install --no-dev --optimize-autoloader
 
-      - name: Deploy Symfony public directory
+      - name: Deploy files to Hostinger
         run: |
-          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
-          
-          if [ -d "${{ env.PROJECT_NAME }}/public" ]; then
-            echo "Déploiement du dossier public vers $FRONT_END_REPO"
-            rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-              ${{ env.PROJECT_NAME }}/public/ \
-              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
-          else
-            echo "Erreur: Le dossier public n'existe pas dans ${{ env.PROJECT_NAME }}/"
-            exit 1
-          fi
-          
-      - name: Deploy Symfony backend files
+          FRONT="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
+          BACK="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
+          cd ${{ env.PROJECT_NAME }}
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "mkdir -p $FRONT $BACK"
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" public/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" bin config src templates translations var vendor .env ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK
+
+      - name: Run database create on Hostinger
         run: |
-          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
-          
-          echo "Création du répertoire backend: $BACK_END_REPO"
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
+            php bin/console doctrine:database:create --if-not-exists --env=prod
+          "
+
+      - name: Set permissions
+        run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            "mkdir -p $BACK_END_REPO"
-          
-          echo "Déploiement des fichiers backend vers $BACK_END_REPO"
-          cd ${{ env.PROJECT_NAME }}
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-            bin config src templates translations var vendor .env \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
-        
-      - name: Symfony cache warmup
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          cp .env.prod .env
-          php bin/console cache:clear --env=prod
-          php bin/console cache:warmup --env=prod
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+              chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/ &&
+              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/"
