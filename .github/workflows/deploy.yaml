@@ -79,24 +79,17 @@ jobs:
           echo "APP_DEBUG=0" >> .env
           composer install --no-dev --optimize-autoloader --no-scripts
 
-      - name: Install Importmap assets
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          php bin/console importmap:install --no-interaction --env=prod
-          php bin/console importmap:pin @hotwired/stimulus --no-interaction --env=prod
-
-
       - name: Inject DATABASE_URL on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' >> /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
           "
 
-      - name: Check remote .env file
+      - name: Install Importmap assets
         run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
-          "
+          cd ${{ env.PROJECT_NAME }}
+          php bin/console importmap:install --no-interaction --env=prod
+          php bin/console importmap:pin @hotwired/stimulus --no-interaction --env=prod
 
       - name: Run database create on Hostinger
         run: |
