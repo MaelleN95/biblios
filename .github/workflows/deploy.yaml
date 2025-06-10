@@ -44,15 +44,35 @@ jobs:
           echo "APP_SECRET=${{ secrets.APP_SECRET }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           composer install --no-dev --optimize-autoloader --no-scripts
-
-      - name: Deploy files to Hostinger
+          
+      - name: Deploy Symfony public directory
         run: |
-          FRONT="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
-          BACK="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
+          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
+          
+          if [ -d "${{ env.PROJECT_NAME }}/public" ]; then
+            echo "Déploiement du dossier public vers $FRONT_END_REPO"
+            rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+              ${{ env.PROJECT_NAME }}/public/ \
+              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
+          else
+            echo "Erreur: Le dossier public n'existe pas dans ${{ env.PROJECT_NAME }}/"
+            exit 1
+          fi
+          
+      - name: Deploy Symfony backend files
+        run: |
+          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
+          
+          echo "Création du répertoire backend: $BACK_END_REPO"
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            "mkdir -p $BACK_END_REPO"
+          
+          echo "Déploiement des fichiers backend vers $BACK_END_REPO"
           cd ${{ env.PROJECT_NAME }}
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "mkdir -p $FRONT $BACK"
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" public/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" bin config src templates translations var vendor .env ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+            bin config src templates translations var vendor .env \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
 
       - name: Run database create on Hostinger
         run: |
@@ -69,7 +89,7 @@ jobs:
             php bin/console cache:clear --no-warmup --env=prod &&
             php bin/console cache:warmup --env=prod
           "
-          
+
       - name: Set permissions
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
