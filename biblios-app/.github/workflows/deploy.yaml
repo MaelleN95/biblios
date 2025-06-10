@@ -1,0 +1,67 @@
+name: Automatic deployment to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Change directory to Symfony app
+        run: 
+            PROJET_NAME=biblios-app
+            cd ${PROJET_NAME}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+            php-version: '8.2'
+            extensions: mbstring, intl, pdo, pdo_mysql, ctype, iconv, xml, zip
+            tools: composer
+
+
+      - name: Install Composer dependencies (no dev)
+        run: composer install --no-dev --optimize-autoloader
+
+
+      - name: Symfony cache warmup
+        run: |
+          php bin/console cache:clear --env=prod
+          php bin/console cache:warmup --env=prod
+
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+
+      - name: Add Hostinger to known hosts
+        run: |
+          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
+
+
+      - name: Deploy Symfony public dictectory
+        run: |
+          PROJECT_DOMAIN="green-pony-128403.hostingersite.com"
+          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/"
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" public/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
+
+      - name: Deploy Symfony backend files
+        run: |
+          PROJECT_DOMAIN="green-pony-128403.hostingersite.com"
+          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/symfony-app/"
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "mkdir -p $BACK_END_REPO"
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+          bin config src templates translations var vendor .env \
+          ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
+            
+          PROJECT_DOMAIN="green-pony-128403.hostingersite.com"
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" dist/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${PROJECT_DOMAIN}/public_html/
