@@ -40,7 +40,7 @@ jobs:
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
           ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-          "composer self-update --2.8.6 && \
+          "composer self-update --2 && \
           composer --version"    
 
       - name: Deploy Symfony public directory
