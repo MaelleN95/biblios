@@ -127,12 +127,8 @@ jobs:
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            ls &&
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            ls &&
-            export DATABASE_URL='${{ secrets.DATABASE_URL }}' &&
-            echo DATABASE_URL &&
-            php bin/console &&
+            ls bin &&
             php bin/console doctrine:database:create -vvv --env=prod
           "
 
