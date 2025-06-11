@@ -9,6 +9,7 @@ env:
   PROJECT_NAME: "biblios-app"
   PROJECT_DOMAIN: "green-pony-128403.hostingersite.com"
   PHP_VERSION: "8.2"
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 jobs:
   deploy:
