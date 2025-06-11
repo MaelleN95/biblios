@@ -1,13 +1,14 @@
-name: Deploy to Hostinger
+name: Automatic deployment to Hostinger
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 env:
-  PROJECT_DOMAIN: green-pony-128403.hostingersite.com
+  PROJECT_NAME: "biblios-app"
+  PROJECT_DOMAIN: "green-pony-128403.hostingersite.com"
+  PHP_VERSION: "8.2"
 
 jobs:
   deploy:
@@ -17,159 +18,91 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
+      - name: Set up PHP & Composer
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json, zip
-          tools: composer:v2
+            php-version: ${{ env.PHP_VERSION }}
+            extensions: mbstring, intl, pdo, pdo_mysql, ctype, iconv, xml, zip
+            tools: composer:v2.8.6
 
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: Run tests
-        run: php bin/phpunit
-
-      - name: Setup SSH key
+      - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+
+      - name: Add Hostinger to known hosts
+        run: |
           ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Test SSH connection
+      - name: Deploy Symfony public directory
         run: |
+          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
+          
+          if [ -d "${{ env.PROJECT_NAME }}/public" ]; then
+            echo "Déploiement du dossier public vers $FRONT_END_REPO"
+            rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+              ${{ env.PROJECT_NAME }}/public/ \
+              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
+          else
+            echo "Erreur: Le dossier public n'existe pas dans ${{ env.PROJECT_NAME }}/"
+            exit 1
+          fi
+          
+      - name: Deploy Symfony backend files
+        run: |
+          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
+          
+          echo "Création du répertoire backend: $BACK_END_REPO"
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'echo "SSH connection successful"'
+            "mkdir -p $BACK_END_REPO"
+          
+          echo "Déploiement des fichiers backend vers $BACK_END_REPO"
+          cd ${{ env.PROJECT_NAME }}
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+            bin config src migrations templates translations .env \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
 
-      - name: Prepare production environment
+      - name: Build Symfony app locally
         run: |
-          echo "=== Configuration pour la production ==="
-          # Créer un .env optimisé pour la production
-          cat > .env.prod << 'EOF'
-          APP_ENV=prod
-          APP_DEBUG=0
-          DATABASE_URL="${{ secrets.DATABASE_URL }}"
-          MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
-          EOF
-          
-          # Remplacer le .env par la version production
-          cp .env.prod .env
-          
-          echo "=== Installation des dépendances pour la production ==="
-          composer install --no-dev --optimize-autoloader --no-interaction
-          composer dump-autoload --optimize --no-dev
+          cd ${{ env.PROJECT_NAME }}
+          echo "APP_ENV=prod" > .env
+          echo "APP_DEBUG=0" >> .env
+          composer install --no-dev --optimize-autoloader --no-scripts
 
-      - name: Build complete application
+      - name: Inject DATABASE_URL on server
         run: |
-          echo "=== Préparation des fichiers pour production ==="
-          # Nettoyer les fichiers de développement
-          rm -rf .git .github node_modules tests *.md .env.prod
-          
-          # Créer les dossiers nécessaires
-          mkdir -p var/cache var/log
-          chmod 755 var/cache var/log
-          
-          echo "=== Création de l'archive de déploiement ==="
-          tar -czf symfony-deploy.tar.gz \
-            --exclude='var/cache/*' \
-            --exclude='var/log/*' \
-            .
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' >> /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
+          "
 
-      - name: Deploy to Hostinger
+      - name: Check remote .env file
         run: |
-          echo "=== Upload de l'application complète ==="
-          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} \
-            symfony-deploy.tar.gz \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/
-          
-          echo "=== Déploiement sur le serveur ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/ && \
-            echo "Sauvegarde de l ancienne version..." && \
-            rm -rf symfony-app-backup && \
-            mv symfony-app symfony-app-backup 2>/dev/null || true && \
-            echo "Extraction de la nouvelle version..." && \
-            mkdir -p symfony-app && \
-            cd symfony-app && \
-            tar -xzf ../symfony-deploy.tar.gz && \
-            chmod +x bin/console && \
-            chmod -R 755 var/ && \
-            rm ../symfony-deploy.tar.gz && \
-            echo "Déploiement terminé !"'
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
+          "
 
-      - name: Setup database and cache
+      - name: Run database create on Hostinger
         run: |
-          echo "=== Configuration de la base de données ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            echo "Test de la connexion à la base de données..." && \
-            php bin/console doctrine:database:create --if-not-exists --env=prod --no-interaction && \
-            echo "Exécution des migrations..." && \
-            php bin/console doctrine:migrations:migrate --env=prod --no-interaction && \
-            echo "Nettoyage du cache..." && \
-            php bin/console cache:clear --env=prod --no-interaction && \
-            echo "Réchauffement du cache..." && \
-            php bin/console cache:warmup --env=prod --no-interaction'
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
+            php bin/console doctrine:database:create --if-not-exists --env=prod
+          "
+      - name: Run migrations and Symfony commands
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
+            php bin/console doctrine:migrations:migrate --no-interaction --env=prod &&
+            php bin/console assets:install ../public_html --env=prod &&
+            php bin/console cache:clear --no-warmup --env=prod &&
+            php bin/console cache:warmup --env=prod
+          "
 
-      - name: Test deployment
+      - name: Set permissions
         run: |
-          echo "=== Test de l'autoload ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php -r "require \"vendor/autoload.php\"; echo \"✅ Autoload fonctionne!\\n\";"'
-          
-          echo "=== Test de Symfony console ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php bin/console --version --env=prod --no-interaction'
-          
-          echo "=== Vérification de la structure ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            ls -la && \
-            echo "=== Contenu public/ ===" && \
-            ls -la public/ && \
-            echo "=== Test fichier index.php ===" && \
-            head -5 public/index.php'
-
-      - name: Setup web server configuration
-        run: |
-          echo "=== Configuration du serveur web ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/ && \
-            echo "Création du lien symbolique vers public/" && \
-            rm -f public_html && \
-            ln -sf symfony-app/public public_html && \
-            echo "Configuration terminée. Application accessible sur https://${{ env.PROJECT_DOMAIN }}"'
-
-      - name: Final verification
-        run: |
-          echo "=== Vérification finale ==="
-          echo "✅ Application déployée sur : https://${{ env.PROJECT_DOMAIN }}"
-          echo "✅ Répertoire applicatif : /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
-          echo "✅ Répertoire web : /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html -> symfony-app/public"
-          
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/ && \
-            echo "Structure finale:" && \
-            ls -la && \
-            echo "Lien symbolique public_html:" && \
-            ls -la public_html'
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+              chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/ &&
+              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/"
