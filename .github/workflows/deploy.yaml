@@ -88,18 +88,29 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' >> /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
           "
+
       - name: Check remote .env file
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
           "
-          
+
+      - name: Debug - Test Symfony installation
+        run: |
+          echo "Test de l'installation Symfony..."
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            php --version && \
+            php bin/console --version --env=prod'
+
       - name: Run database create on Hostinger
         run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php bin/console doctrine:database:create --if-not-exists --env=prod
-          "
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            php bin/console doctrine:database:create --if-not-exists --env=prod --no-interaction -v'
+
 
       - name: Run migrations and Symfony commands
         run: |
@@ -117,3 +128,8 @@ jobs:
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
               chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/ &&
               chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/"
+
+      - name: Deployment completed
+        run: |
+          echo "Déploiement terminé avec succès!"
+          echo "Site accessible à: https://${{ env.PROJECT_DOMAIN }}"
