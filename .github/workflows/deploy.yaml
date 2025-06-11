@@ -126,13 +126,23 @@ jobs:
           
       - name: Run database create on Hostinger
         run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app 
-            echo "chatGPT tu me vois ? ALLO?!" 
-            ls -lah /usr/bin/ 
-            php bin/console cache:clear -vv 
-            php bin/console doctrine:database:create --env=prod --if-not-exists -vvv
-          "
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+            echo "📍 Début du SSH script"
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || { echo "❌ Dossier non trouvé" && exit 1; }
+            echo "✅ Dossier trouvé : $(pwd)"
+            echo "--- Contenu du dossier ---"
+            ls -lah
+            echo "--- Version de PHP ---"
+            which php
+            php -v || echo "❌ PHP ne fonctionne pas"
+            echo "--- Test Symfony ---"
+            php -d display_errors=1 bin/console about || echo "❌ Symfony console KO"
+            echo "--- Clear Cache ---"
+            php -d display_errors=1 bin/console cache:clear -vv || echo "❌ Cache clear KO"
+            echo "--- Création DB ---"
+            php -d display_errors=1 bin/console doctrine:database:create --env=prod --if-not-exists -vvv || echo "❌ DB create KO"
+            echo "✅ Fin du SSH script"
+          EOF
           
       - name: Run migrations and Symfony commands
         run: |
