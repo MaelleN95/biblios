@@ -25,15 +25,15 @@ jobs:
             extensions: mbstring, intl, pdo, pdo_mysql, ctype, iconv, xml, zip
             tools: composer:v2.8.6
 
-      - name: Update Composer to v2
+      - name: Update Composer to v2.8.6 on remote server
         run: |
-         
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+            curl -sS https://getcomposer.org/installer -o composer-setup.php
             php composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.8.6
-            php -r "unlink('composer-setup.php');"
+            rm -f composer-setup.php
             composer --version
-          "
+          EOF
+          
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
