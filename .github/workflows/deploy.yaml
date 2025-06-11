@@ -73,6 +73,14 @@ jobs:
             bin config src migrations templates translations .env \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
   
+      - name: Install Composer dependencies on server
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || exit 1
+            source ~/.bashrc
+            composer install --no-dev --optimize-autoloader --no-scripts
+          EOF
+
       - name: Upload Symfony secrets to server
         run: |
           scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r biblios-app/config/secrets/prod \
