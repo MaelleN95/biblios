@@ -80,6 +80,7 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || exit 1
             source ~/.bashrc
+            rm -rf vendor/
             composer install --no-dev --optimize-autoloader --no-scripts
           EOF
 
