@@ -128,7 +128,8 @@ jobs:
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app 
-            /usr/bin/php bin/console cache:clear -vv 
+            echo "chatGPT tu me vois ? ALLO?!" 
+            ls -lah /usr/bin/ 
             php bin/console cache:clear -vv 
             php bin/console doctrine:database:create --env=prod --if-not-exists -vvv
           "
