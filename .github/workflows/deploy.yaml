@@ -112,7 +112,14 @@ jobs:
               }
             '
           "
-
+      - name: Set up .env.local.php on Hostinger
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
+            echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' > .env.local &&
+            composer dump-env prod
+          "
+          
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
