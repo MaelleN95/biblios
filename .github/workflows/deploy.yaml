@@ -94,17 +94,17 @@ jobs:
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            php -r '
+            DATABASE_URL='${{ secrets.DATABASE_URL }}' php -r '
               \$url = getenv(\"DATABASE_URL\");
               if (!\$url) {
-                echo \"DATABASE_URL not set\n\";
+                echo \"DATABASE_URL not set\\n\";
                 exit(1);
               }
               try {
                 \$params = parse_url(\$url);
                 if (!\$params) throw new Exception(\"Invalid DATABASE_URL\");
                 \$pdo = new PDO(\"mysql:host=\".\$params[\"host\"].\";port=\".\$params[\"port\"].\";dbname=\".ltrim(\$params[\"path\"], \"/\"), \$params[\"user\"], \$params[\"pass\"] );
-                echo \"DB connection successful\n\";
+                echo \"DB connection successful\\n\";
                 exit(0);
               } catch (Exception \$e) {
                 echo \"DB connection failed: \".\$e->getMessage().\"\\n\";
