@@ -127,11 +127,9 @@ jobs:
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            chmod 777 -R bin &&
-            php -v &&
-            php bin/console cache:clear -vv &&
-            php bin/console doctrine:database:create -vvv --env=prod
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app 
+            php bin/console cache:clear -vv 
+            php bin/console doctrine:database:create --env=prod --if-not-exists -vvv
           "
 
       - name: Run migrations and Symfony commands
