@@ -117,7 +117,8 @@ jobs:
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            DATABASE_URL='${{ secrets.DATABASE_URL }}' php bin/console doctrine:database:create --if-not-exists --env=prod
+            export DATABASE_URL='${{ secrets.DATABASE_URL }}' &&
+            php bin/console doctrine:database:create --if-not-exists --env=prod
           "
 
       - name: Run migrations and Symfony commands
