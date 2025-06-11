@@ -98,11 +98,30 @@ jobs:
       - name: Debug - Test Symfony installation
         run: |
           echo "Test de l'installation Symfony..."
+          echo "=== Test de connexion SSH ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php --version && \
-            php bin/console --version --env=prod'
+            'echo "SSH OK"'
+
+          echo "=== Test version PHP ==="
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'php --version'
+
+          echo "=== Test navigation vers le dossier ==="
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && pwd && ls -la'
+
+          echo "=== Test existence du fichier bin/console ==="
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && ls -la bin/'
+    
+          echo "=== Test permissions bin/console ==="
+            ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+              'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && file bin/console && head -5 bin/console'
 
       - name: Run database create on Hostinger
         run: |
