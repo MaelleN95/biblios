@@ -87,6 +87,7 @@ jobs:
       - name: Build Symfony app locally
         run: |
           cd ${{ env.PROJECT_NAME }}
+          composer require symfony/runtime
           composer install --no-dev --optimize-autoloader --no-scripts
 
       - name: Inject DATABASE_URL on server
@@ -129,6 +130,7 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
             echo "📍 Début du SSH script"
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || { echo "❌ Dossier non trouvé" && exit 1; }
+            composer show symfony/runtime
             echo "✅ Dossier trouvé : $(pwd)"
             echo "--- Contenu du dossier ---"
             ls -lah
