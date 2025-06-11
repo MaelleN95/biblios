@@ -72,6 +72,17 @@ jobs:
           rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
             bin config src migrations templates translations .env \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
+  
+      - name: Upload Symfony secrets to server
+        run: |
+          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r config/secrets/prod \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/config/secrets/
+
+      - name: Upload decrypt key to server
+        run: |
+          echo "${{ secrets.SYMFONY_DECRYPT_KEY }}" > prod.decrypt.private.php
+          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} prod.decrypt.private.php \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/config/secrets/prod/
 
       - name: Build Symfony app locally
         run: |
@@ -111,13 +122,6 @@ jobs:
                 exit(1);
               }
             '
-          "
-      - name: Set up .env.local.php on Hostinger
-        run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' > .env.local &&
-            composer dump-env prod
           "
           
       - name: Run database create on Hostinger
