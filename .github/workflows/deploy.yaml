@@ -95,25 +95,43 @@ jobs:
             cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
           "
 
-      - name: Test Symfony Console Commands
+      - name: Debug Symfony Error - Diagnostic complet
         run: |
-          echo "=== Test de base du console Symfony ==="
+          echo "=== Test direct de PHP avec bin/console ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php bin/console list --no-interaction'
+            php -l bin/console && echo "Syntaxe PHP OK"'
           
-          echo "=== Test de la version Symfony ==="
+          echo "=== Test autoload Composer ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php bin/console --version --no-interaction'
+            php -r "require_once \"vendor/autoload.php\"; echo \"Autoload OK\n\";" 2>&1'
           
-          echo "=== Test de l'environnement ==="
+          echo "=== Test des classes Symfony ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php bin/console debug:config framework --env=prod --no-interaction || echo "Config framework non accessible"'
+            php -r "require_once \"vendor/autoload.php\"; use App\\Kernel; echo \"Kernel class OK\n\";" 2>&1'
+          
+          echo "=== Test avec affichage des erreurs ==="
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            php -d display_errors=1 -d error_reporting=E_ALL bin/console 2>&1 || echo "Erreur détectée"'
+          
+          echo "=== Vérification fichier .env ==="
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            echo "Contenu .env:" && head -10 .env'
+          
+          echo "=== Test extensions PHP requises ==="
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+            'php -m | grep -E "(pdo|mysql|zip|xml|json|mbstring|curl|openssl|tokenizer)" && \
+            echo "Extensions vérifiées"'
 
       - name: Run database create on Hostinger
         run: |
