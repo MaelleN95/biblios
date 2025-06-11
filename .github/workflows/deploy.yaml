@@ -127,6 +127,8 @@ jobs:
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+            echo "--- AJOUT PATH ---"
+            source ~/.bashrc
             echo "📍 Début du SSH script"
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || { echo "❌ Dossier non trouvé" && exit 1; }
             echo "📍 Vérification du path"
