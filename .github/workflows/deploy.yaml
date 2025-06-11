@@ -36,12 +36,12 @@ jobs:
         run: |
           ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Update Composer to v2.8.6 on remote server
+      - name: Verify Composer and PHP versions
         run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-          ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-          "composer self-update --2 && \
-          composer --version"    
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            php -v &&
+            \$HOME/bin/composer -V
+          "
 
       - name: Deploy Symfony public directory
         run: |
