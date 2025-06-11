@@ -75,7 +75,6 @@ jobs:
   
       - name: Upload Symfony secrets to server
         run: |
-          ls
           scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r biblios-app/config/secrets/prod \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/config/secrets/
 
@@ -130,7 +129,7 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
             export DATABASE_URL='${{ secrets.DATABASE_URL }}' &&
-            php bin/console doctrine:database:create --if-not-exists --env=prod
+            php bin/console doctrine:database:create -vvv --env=prod
           "
 
       - name: Run migrations and Symfony commands
