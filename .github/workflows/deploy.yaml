@@ -93,7 +93,6 @@ jobs:
       - name: Test DB connection on remote server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            export \$(grep ^DATABASE_URL= /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env | xargs) &&
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
             php -r '
               \$url = getenv(\"DATABASE_URL\");
@@ -117,9 +116,8 @@ jobs:
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            export \$(grep ^DATABASE_URL= /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env | xargs) &&
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
-            php bin/console doctrine:database:create --if-not-exists --env=prod
+            DATABASE_URL='${{ secrets.DATABASE_URL }}' php bin/console doctrine:database:create --if-not-exists --env=prod
           "
 
       - name: Run migrations and Symfony commands
