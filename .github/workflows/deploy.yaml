@@ -87,7 +87,6 @@ jobs:
       - name: Build Symfony app locally
         run: |
           cd ${{ env.PROJECT_NAME }}
-          composer require symfony/runtime
           composer install --no-dev --optimize-autoloader --no-scripts
 
       - name: Inject DATABASE_URL on server
