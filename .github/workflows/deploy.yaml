@@ -23,14 +23,7 @@ jobs:
         with:
             php-version: ${{ env.PHP_VERSION }}
             extensions: mbstring, intl, pdo, pdo_mysql, ctype, iconv, xml, zip
-            tools: composer
-
-      - name: Update Composer to v2
-        run: |
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.8.6
-          php -r "unlink('composer-setup.php');"
-          composer --version
+            tools: composer:v2.8.6
 
       - name: Set up SSH key
         run: |
