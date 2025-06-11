@@ -95,43 +95,37 @@ jobs:
             cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
           "
 
-      - name: Debug Symfony Error - Diagnostic complet
+      - name: Fix Composer autoload
         run: |
-          echo "=== Test direct de PHP avec bin/console ==="
+          echo "=== Vérification de l'état de Composer ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php -l bin/console && echo "Syntaxe PHP OK"'
+            ls -la vendor/ && \
+            echo "=== Contenu vendor/composer/ ===" && \
+            ls -la vendor/composer/ 2>/dev/null || echo "Dossier composer manquant"'
           
-          echo "=== Test autoload Composer ==="
+          echo "=== Test de Composer ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php -r "require_once \"vendor/autoload.php\"; echo \"Autoload OK\n\";" 2>&1'
+            composer --version 2>/dev/null || echo "Composer non disponible dans PATH"'
           
-          echo "=== Test des classes Symfony ==="
+          echo "=== Regénération de l'autoload ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php -r "require_once \"vendor/autoload.php\"; use App\\Kernel; echo \"Kernel class OK\n\";" 2>&1'
+            /usr/local/bin/composer dump-autoload --optimize --no-dev 2>&1 || \
+            php /usr/local/bin/composer.phar dump-autoload --optimize --no-dev 2>&1 || \
+            echo "Composer non accessible"'
           
-          echo "=== Test avec affichage des erreurs ==="
+          echo "=== Reinstallation des dépendances si nécessaire ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
             'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            php -d display_errors=1 -d error_reporting=E_ALL bin/console 2>&1 || echo "Erreur détectée"'
-          
-          echo "=== Vérification fichier .env ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
-            echo "Contenu .env:" && head -10 .env'
-          
-          echo "=== Test extensions PHP requises ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'php -m | grep -E "(pdo|mysql|zip|xml|json|mbstring|curl|openssl|tokenizer)" && \
-            echo "Extensions vérifiées"'
+            /usr/local/bin/composer install --no-dev --optimize-autoloader 2>&1 || \
+            php /usr/local/bin/composer.phar install --no-dev --optimize-autoloader 2>&1 || \
+            echo "Installation Composer échouée"'
 
       - name: Run database create on Hostinger
         run: |
