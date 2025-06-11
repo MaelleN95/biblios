@@ -38,12 +38,13 @@ jobs:
 
       - name: Update Composer to v2.8.6 on remote server
         run: |
-          ssh -o StrictHostKeyChecking=no -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
-            curl -sS https://getcomposer.org/installer -o composer-setup.php
-            php composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.8.6
-            rm -f composer-setup.php
-            composer --version
-          EOF        
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+          ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
+          "mkdir -p \$HOME/bin && \
+          curl -sS https://getcomposer.org/installer -o composer-setup.php && \
+          php composer-setup.php --install-dir=\$HOME/bin --filename=composer --version=2.8.6 && \
+          rm -f composer-setup.php && \
+          \$HOME/bin/composer --version"    
 
       - name: Deploy Symfony public directory
         run: |
