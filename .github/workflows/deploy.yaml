@@ -75,7 +75,7 @@ jobs:
   
       - name: Upload Symfony secrets to server
         run: |
-          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r config/secrets/prod \
+          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r config/secrets/prod/ \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/config/secrets/
 
       - name: Upload decrypt key to server
