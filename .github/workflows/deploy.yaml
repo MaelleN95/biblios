@@ -95,33 +95,25 @@ jobs:
             cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
           "
 
-      - name: Debug - Test Symfony installation
+      - name: Test Symfony Console Commands
         run: |
-          echo "Test de l'installation Symfony..."
-          echo "=== Test de connexion SSH ==="
+          echo "=== Test de base du console Symfony ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'echo "SSH OK"'
-
-          echo "=== Test version PHP ==="
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            php bin/console list --no-interaction'
+          
+          echo "=== Test de la version Symfony ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'php --version'
-
-          echo "=== Test navigation vers le dossier ==="
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            php bin/console --version --no-interaction'
+          
+          echo "=== Test de l'environnement ==="
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && pwd && ls -la'
-
-          echo "=== Test existence du fichier bin/console ==="
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && ls -la bin/'
-    
-          echo "=== Test permissions bin/console ==="
-            ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-              'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && file bin/console && head -5 bin/console'
+            'cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app && \
+            php bin/console debug:config framework --env=prod --no-interaction || echo "Config framework non accessible"'
 
       - name: Run database create on Hostinger
         run: |
