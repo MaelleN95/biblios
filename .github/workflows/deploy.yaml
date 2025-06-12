@@ -134,10 +134,25 @@ jobs:
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
             php bin/console importmap:install --no-interaction
             php bin/console importmap:require bootstrap
-            php bin/console asset-map:compile --env=prod
           "
 
-          
+      - name: Make Bootstrap available globally in app.js
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+            APP_JS="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/assets/app.js"
+            echo "Importing bootstrap in \$APP_JS"
+            grep -q "window.bootstrap" "\$APP_JS" || {
+              echo -e "\nimport * as bootstrap from 'bootstrap';\nwindow.bootstrap = bootstrap;" >> "\$APP_JS"
+            }
+          EOF
+
+      - name: Compile assets with Asset Map
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
+            php bin/console asset-map:compile --env=prod
+          " 
+
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
