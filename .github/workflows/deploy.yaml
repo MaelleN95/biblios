@@ -44,9 +44,9 @@ jobs:
             \$HOME/bin/composer -V
           "
 
-      - name: Deploy entire symfony-app directory
+      - name: Deploy entire ${{ env.PROJECT_NAME }} directory
         run: |
-          REMOTE_DIR="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
+          REMOTE_DIR="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/"
 
           echo "Création du répertoire distant : $REMOTE_DIR"
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
@@ -62,7 +62,7 @@ jobs:
       - name: Install Composer dependencies on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || exit 1
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} || exit 1
             source ~/.bashrc
             rm -rf vendor/
             composer install --no-dev --optimize-autoloader --no-scripts
@@ -71,13 +71,13 @@ jobs:
       - name: Upload Symfony secrets to server
         run: |
           scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r biblios-app/config/secrets/prod \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/config/secrets/
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/config/secrets/
 
       - name: Upload decrypt key to server
         run: |
           echo "${{ secrets.SYMFONY_DECRYPT_KEY }}" > prod.decrypt.private.php
           scp -P ${{ secrets.HOSTINGER_SSH_PORT }} prod.decrypt.private.php \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/config/secrets/prod/
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/config/secrets/prod/
 
       - name: Build Symfony app locally
         run: |
@@ -87,19 +87,19 @@ jobs:
       - name: Inject DATABASE_URL on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' >> /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
+            echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' >> /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/.env
           "
 
       - name: Check remote .env file
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/.env
+            cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/.env
           "
 
       - name: Test DB connection on remote server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
             DATABASE_URL='${{ secrets.DATABASE_URL }}' php -r '
               \$url = getenv(\"DATABASE_URL\");
               if (!\$url) {
@@ -127,7 +127,7 @@ jobs:
             echo "Contenu de ~/.bashrc :"
             cat ~/.bashrc
             echo "📍 Début du SSH script"
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app || { echo "❌ Dossier non trouvé" && exit 1; }
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} || { echo "❌ Dossier non trouvé" && exit 1; }
             echo "📍 Vérification du path"
             echo $PATH
             echo "✅ Dossier trouvé : $(pwd)"
@@ -148,9 +148,9 @@ jobs:
       - name: Run migrations and Symfony commands
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app &&
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
             php bin/console doctrine:migrations:migrate --no-interaction --env=prod &&
-            php bin/console assets:install --env=prod &&
+            php bin/console assets:installchown -R www-data:www-data ${{ env.PROJECT_NAME }} --env=prod &&
             php bin/console cache:clear --no-warmup --env=prod &&
             php bin/console cache:warmup --env=prod
           "
@@ -160,4 +160,4 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
               chmod -R 755 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/ &&
-              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/var/"
+              chmod -R 777 /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/var/"
