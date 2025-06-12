@@ -58,11 +58,20 @@ jobs:
             ${{ env.PROJECT_NAME }}/ \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$REMOTE_DIR
 
+      - name: Create public_html symlink on server
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            rm -rf /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html &&
+            ln -s /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/public /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html
+          "
   
       - name: Install Composer dependencies on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} || exit 1
+            echo "📍 Vérification du contenu du dossier"
+            ls -lah
+            echo "📍 FIN vérif du contenu du dossier"
             source ~/.bashrc
             rm -rf vendor/
             composer install --no-dev --optimize-autoloader --no-scripts
@@ -150,7 +159,7 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
             php bin/console doctrine:migrations:migrate --no-interaction --env=prod &&
-            php bin/console assets:installchown -R www-data:www-data ${{ env.PROJECT_NAME }} --env=prod &&
+            php bin/console assets:install &&
             php bin/console cache:clear --no-warmup --env=prod &&
             php bin/console cache:warmup --env=prod
           "
