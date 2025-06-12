@@ -75,17 +75,6 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-scripts
           EOF
 
-      - name: Upload Symfony secrets to server
-        run: |
-          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r ${{ env.PROJECT_NAME }}/config/secrets/prod \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/config/secrets/
-
-      - name: Upload decrypt key to server
-        run: |
-          echo "${{ secrets.SYMFONY_DECRYPT_KEY }}" > prod.decrypt.private.php
-          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} prod.decrypt.private.php \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/config/secrets/prod/
-
       - name: Inject DATABASE_URL on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
@@ -154,7 +143,6 @@ jobs:
               echo "$BLOCK" > "$HTACCESS_FILE"
             fi
           EOF
-
 
       - name: Run database create on Hostinger
         run: |
