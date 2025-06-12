@@ -77,13 +77,6 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-scripts
           EOF
 
-      - name: Install importmap assets on server
-        run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
-            php bin/console importmap:install --no-interaction
-          "
-
       - name: Upload Symfony secrets to server
         run: |
           scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r biblios-app/config/secrets/prod \
@@ -134,6 +127,14 @@ jobs:
               }
             '
           "
+
+      - name: Install importmap assets on server
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
+            php bin/console importmap:install --no-interaction
+          "
+
           
       - name: Run database create on Hostinger
         run: |
