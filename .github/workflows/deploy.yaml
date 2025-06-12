@@ -149,6 +149,26 @@ jobs:
             php bin/console asset-map:compile --env=prod
           " 
 
+      - name: Create or update .htaccess in public directory
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+            HTACCESS_FILE="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/public/.htaccess"
+            BLOCK='<IfModule mod_rewrite.c>
+            RewriteEngine On
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteRule ^ index.php [QSA,L]
+            </IfModule>'
+
+            if [ -f "$HTACCESS_FILE" ]; then
+              if ! grep -q 'RewriteEngine On' "$HTACCESS_FILE"; then
+                (echo "$BLOCK"; cat "$HTACCESS_FILE") > "$HTACCESS_FILE.tmp" && mv "$HTACCESS_FILE.tmp" "$HTACCESS_FILE"
+              fi
+            else
+              echo "$BLOCK" > "$HTACCESS_FILE"
+            fi
+          EOF
+
+
       - name: Run database create on Hostinger
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
