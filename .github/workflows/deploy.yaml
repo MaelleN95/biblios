@@ -135,16 +135,12 @@ jobs:
             php bin/console importmap:install --no-interaction
             php bin/console importmap:require bootstrap
           "
-
-      - name: Make Bootstrap available globally in app.js
+      - name: Add bootstrap import to app.js on server
         run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
-            APP_JS="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/assets/app.js"
-            echo "Importing bootstrap in \$APP_JS"
-            grep -q "window.bootstrap" "\$APP_JS" || {
-              echo -e "\nimport * as bootstrap from 'bootstrap';\nwindow.bootstrap = bootstrap;" >> "\$APP_JS"
-            }
-          EOF
+          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
+            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/assets &&
+            grep -q 'window.bootstrap' app.js || sed -i '1i import * as bootstrap from '\''bootstrap'\'';\nwindow.bootstrap = bootstrap;' app.js
+          "
 
       - name: Compile assets with Asset Map
         run: |
