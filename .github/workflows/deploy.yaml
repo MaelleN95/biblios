@@ -60,6 +60,7 @@ jobs:
 
       - name: Create public_html symlink on server
         run: |
+          echo "Création du lien symbolique entre le dossier ${{ env.PROJECT_NAME }}/public et /public_html"
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
             rm -rf /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html &&
             ln -s /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/public /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html
@@ -69,9 +70,6 @@ jobs:
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} || exit 1
-            echo "📍 Vérification du contenu du dossier"
-            ls -lah
-            echo "📍 FIN vérif du contenu du dossier"
             source ~/.bashrc
             rm -rf vendor/
             composer install --no-dev --optimize-autoloader --no-scripts
@@ -79,7 +77,7 @@ jobs:
 
       - name: Upload Symfony secrets to server
         run: |
-          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r biblios-app/config/secrets/prod \
+          scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -r ${{ env.PROJECT_NAME }}/config/secrets/prod \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/config/secrets/
 
       - name: Upload decrypt key to server
@@ -99,16 +97,9 @@ jobs:
             echo 'DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"' >> /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/.env
           "
 
-      - name: Check remote .env file
+      - name: Test the DB connection using the Github Actions variable DATABASE_URL
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cat /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/.env
-          "
-
-      - name: Test DB connection on remote server
-        run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
-            cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} &&
             DATABASE_URL='${{ secrets.DATABASE_URL }}' php -r '
               \$url = getenv(\"DATABASE_URL\");
               if (!\$url) {
@@ -135,6 +126,7 @@ jobs:
             php bin/console importmap:install --no-interaction
             php bin/console importmap:require bootstrap
           "
+
       - name: Add bootstrap import to app.js on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
@@ -176,13 +168,8 @@ jobs:
             source ~/.bashrc
             echo "Contenu de ~/.bashrc :"
             cat ~/.bashrc
-            echo "📍 Début du SSH script"
+            echo "📍 Début SSH script"
             cd /home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }} || { echo "❌ Dossier non trouvé" && exit 1; }
-            echo "📍 Vérification du path"
-            echo $PATH
-            echo "✅ Dossier trouvé : $(pwd)"
-            echo "--- Contenu du dossier ---"
-            ls -lah
             echo "--- Version de PHP ---"
             which php
             php -v || echo "❌ PHP ne fonctionne pas"
@@ -192,7 +179,7 @@ jobs:
             php -d display_errors=1 bin/console cache:clear -vv || echo "❌ Cache clear KO"
             echo "--- Création DB ---"
             php -d display_errors=1 bin/console doctrine:database:create --env=prod --if-not-exists -vvv || echo "❌ DB create KO"
-            echo "✅ Fin du SSH script"
+            echo "✅ Fin SSH script"
           EOF
           
       - name: Run migrations and Symfony commands
