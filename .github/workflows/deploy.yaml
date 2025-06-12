@@ -44,36 +44,20 @@ jobs:
             \$HOME/bin/composer -V
           "
 
-      - name: Deploy Symfony public directory
+      - name: Deploy entire symfony-app directory
         run: |
-          FRONT_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/public_html/"
-          
-          if [ -d "${{ env.PROJECT_NAME }}/public" ]; then
-            echo "Déploiement du dossier public vers $FRONT_END_REPO"
-            rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-              ${{ env.PROJECT_NAME }}/public/ \
-              ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$FRONT_END_REPO
-          else
-            echo "Erreur: Le dossier public n'existe pas dans ${{ env.PROJECT_NAME }}/"
-            exit 1
-          fi
+          REMOTE_DIR="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
 
-
-
-      - name: Deploy Symfony backend files
-        run: |
-          BACK_END_REPO="/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/symfony-app/"
-          
-          echo "Création du répertoire backend: $BACK_END_REPO"
+          echo "Création du répertoire distant : $REMOTE_DIR"
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} \
-            "mkdir -p $BACK_END_REPO"
-          
-          echo "Déploiement des fichiers backend vers $BACK_END_REPO"
-          cd ${{ env.PROJECT_NAME }}
+            "mkdir -p $REMOTE_DIR"
+
+          echo "Déploiement complet du projet Symfony vers $REMOTE_DIR"
           rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
-            bin config src migrations templates translations .env composer.json composer.lock \
-            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$BACK_END_REPO
+            ${{ env.PROJECT_NAME }}/ \
+            ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:$REMOTE_DIR
+
   
       - name: Install Composer dependencies on server
         run: |
