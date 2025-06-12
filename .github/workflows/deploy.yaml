@@ -86,11 +86,6 @@ jobs:
           scp -P ${{ secrets.HOSTINGER_SSH_PORT }} prod.decrypt.private.php \
             ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ env.PROJECT_DOMAIN }}/${{ env.PROJECT_NAME }}/config/secrets/prod/
 
-      - name: Build Symfony app locally
-        run: |
-          cd ${{ env.PROJECT_NAME }}
-          composer install --no-dev --optimize-autoloader --no-scripts
-
       - name: Inject DATABASE_URL on server
         run: |
           ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} "
