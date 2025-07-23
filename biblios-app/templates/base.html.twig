@@ -15,7 +15,6 @@
         {% endblock %}
     </head>
     <body id="page-top">
-        <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
             <div class="container px-4">
                 <a class="navbar-brand" href="{{ path('app_main')}}">Biblios</a>
@@ -33,9 +32,22 @@
             </div>
         </nav>
         {% block body %}{% endblock %}
-        <!-- Footer-->
-        <footer class="py-5 bg-dark">
-            <div class="container px-4"><p class="m-0 text-center text-white">Copyright &copy; Biblios</p></div>
+        <footer class="py-5 bg-dark text-white">
+            <div class="container px-4 text-center">
+                <p class="mb-2">Biblios</p>
+                <p class="mb-2">
+                    Développé par
+                        <a href="https://github.com/" class="text-white">
+                            Kōji</a> &copy; 2025
+                </p>
+                <p class="mb-2">
+                    Ce site est open source et ne récolte aucune donnée. 
+                    <a href="https://github.com/" class="text-white">
+                        Consultez le code source sur GitHub
+                    </a>.
+                </p>
+                <p class="mb-0 fst-italic">Ce site est une simulation.</p>
+            </div>
         </footer>
     </body>
 </html>
