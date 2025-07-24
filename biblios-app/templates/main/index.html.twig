@@ -4,30 +4,36 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
-    <!-- Header-->
     <header class="bg-primary bg-gradient text-white">
         <div class="container px-4 text-center">
             <h1 class="fw-bolder">Biblios</h1>
             <p class="lead">Catalogue en ligne de la médiathèque de Trifouillis-les-Oies</p>
+            <p class="lead fs-4">Un site de démonstration pour une commune qui, soyons honnêtes, n’a jamais existé ailleurs que dans notre imagination.</p>
             <a class="btn btn-lg btn-light" href="{{ path('app_book_index')}}">Parcourez le catalogue</a>
         </div>
     </header>
-    <!-- About section-->
     <section id="about">
         <div class="container px-4">
             <div class="row gx-4 justify-content-center">
                 <div class="col-lg-8">
-                    <h2>Biblios: qu'est-ce que c'est?</h2>
-                    <p class="lead">Biblios est la plateforme officielle de consultation du catalogue de la médiathèque de Trifouillis-les-Oies. Explorez notre collection avec une recherche efficace, vérifiez la disponibilité des ouvrages en temps réel, et effectuez des réservations en toute simplicité. Biblios s'engage pour faciliter l'accès à la culture et promouvoir la richesse de notre patrimoine littéraire.</p>
+                    <p class="lead">Biblios est la plateforme officielle (ou presque) de consultation du catalogue de la bibliothèque municipale de Trifouillis-les-Oies.
+                    <p>
+                        Toutes les données présentées sont générées automatiquement : les livres, les auteurs, les résumés, les commentaires… Bref, toute ressemblance avec des ouvrages existants serait purement fortuite (ou un heureux hasard de l’algorithme).
+                    </p>
                     <p>Fonctionnalités clés :</p>
                     <ul>
-                        <li>Recherche avancée de livres</li>
-                        <li>Consultation en temps réel du statut des ouvrages (disponible, emprunté, indisponible)</li>
-                        <li>Affichage détaillé des informations sur les livres</li>
-                        <li>Processus de réservation simplifié</li>
+                        <li>Consultation du catalogue complet</li>
+                        <li>Fiches détaillées pour chaque ouvrage : auteur, résumé, disponibilité et commentaires</li>
+                        <li>Ajout de commentaires sur les livres (membres connectés uniquement)</li>
+                        <li>Ajout, modification et suppression de livres (droits d’édition requis)</li>
+                   
                     </ul>
+                      <p class="mt-4">
+                        Pour commenter ou gérer les livres, veuillez vous <a href="{{ path('app_login') }}">connecter</a>.
+                    </p>
+                    <p class="text-muted fst-italic mt-3">
+                        Note : Trifouillis-les-Oies n’apparaît dans aucun atlas, et aucun bibliothécaire n’y a jamais été aperçu. Ce site est un projet expérimental.
+                    </p>
                 </div>
-            </div>
-        </div>
     </section>
 {% endblock %}
